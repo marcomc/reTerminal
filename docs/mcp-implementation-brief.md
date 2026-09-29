@@ -17,7 +17,7 @@
 
 ## Goal
 
-Build an MCP server that can inspect the public template catalog and, once a supported account credential is available, create and manage templates for the authenticated user's account. The service API is undocumented and was inferred from the deployed first-party web client. Treat it as a fragile integration.
+Build an MCP server that can inspect the public template catalog and, using an account API key, access the authenticated account's workspace and manage templates. The service API is undocumented and was inferred from the deployed first-party web client. Treat it as a fragile integration.
 
 ## Supported scope
 
@@ -27,6 +27,9 @@ Build an MCP server that can inspect the public template catalog and, once a sup
 2. `sensecraft_search_templates` (marketplace list; filters include keyword, device model, resolution, tag, category IDs, sort and pagination)
 3. `sensecraft_get_template`
 4. `sensecraft_list_my_templates` (must require authenticated user access)
+5. `sensecraft_list_my_designs` (workspace list filtered to `types=layout`)
+6. `sensecraft_list_my_photos` (workspace list filtered to `types=img`)
+7. `sensecraft_list_my_playlists`
 
 ### Initial write tools
 
@@ -38,9 +41,10 @@ Do not expose the broader route inventory by default. In particular, exclude acc
 
 ## Authentication and configuration
 
-- The initial implementation must have an injectable credential provider and must not assume a user-supplied `SENSECRAFT_API_KEY` works. Live requests demonstrated that public catalog GETs are anonymous, while profile and account-template GETs return `User unauthorized` without session auth.
+- The tested account API key must be sent in the `api-key` header. Raw and Bearer `Authorization` returned application code 401; the `api-key` profile request returned code 200. Keep an injectable credential provider and load `SENSECRAFT_API_KEY` from a secret store or ignored local `.env` file.
+- Public catalog GETs work without credentials. Profile, workspace pages, playlists, and user templates need the authenticated `api-key` header.
 - Ask Seeed for the official auth contract before claiming supported account writes. Do not automate website login or collect the user's password.
-- Until then, allow a short-lived token to be supplied out of band via a protected environment variable/secret store. Confirm whether the token value needs the Bearer authorization scheme. Never put credentials in MCP tool arguments, resource contents, logs, exception strings, or generated documentation.
+- Never put credentials in MCP tool arguments, resources, logs, exception strings, or generated documentation. The `api-key` value belongs only in the upstream HTTP header.
 - Do not refresh tokens automatically until the documented flow is known. The SPA refreshes through `sensecraft-auth.seeed.cc` and includes browser credentials; reproducing that outside a browser is not established.
 - Separate anonymous catalog access from authenticated account access. A missing credential should not break the public read tools.
 
@@ -71,6 +75,12 @@ sensecraft_list_my_templates({
   page?: integer = 1,
   page_size?: integer = 20
 })
+
+sensecraft_list_my_designs({page?: integer = 1, page_size?: integer = 20,
+                            resolution?: string})
+sensecraft_list_my_photos({page?: integer = 1, page_size?: integer = 20,
+                           resolution?: string})
+sensecraft_list_my_playlists({page?: integer = 1, page_size?: integer = 20})
 
 sensecraft_create_template({
   name: non-empty string,
@@ -145,7 +155,7 @@ MCP input
 
 Do not describe the MCP as ready for account writes until these are resolved:
 
-- Supported account-auth scheme and token refresh lifecycle.
+- Official account-auth contract, full permissions, and token refresh lifecycle.
 - Confirmed create/update payload schemas and response shape.
 - Privacy/visibility and moderation behavior for created templates.
 - Schema for template page `data` and `api_data`; supported device and dither values.

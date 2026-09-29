@@ -6,7 +6,12 @@ Research notes for a future MCP server that can operate a SenseCraft HMI account
 
 - [API field notes](docs/sensecraft-hmi-api.md)
 - [MCP implementation brief](docs/mcp-implementation-brief.md)
+- [License](LICENSE)
 
 ## Evidence scope
 
 The documents distinguish official platform documentation, behavior observed in the public web application's JavaScript bundle, and live read-only HTTP probes. The service does not publish an OpenAPI specification in the sources examined. Undocumented request and response details are explicitly marked for verification.
+
+## License
+
+Original project documentation is licensed under [CC BY 4.0](LICENSE). This license does not apply to Seeed's services, trademarks, or third-party content cited here.

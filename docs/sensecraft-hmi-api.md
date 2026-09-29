@@ -47,15 +47,15 @@ The SPA uses a shared HTTP client (`kr`) for the HMI API. JSON requests use Axio
 - `GET /api/v2/auth/profile` without credentials returned HTTP 200 with JSON `{"code":401,"message":"User unauthorized"}` (**live-probed**).
 - `GET /api/v2/user/template?page=1&page_size=1` without credentials returned the same application-level unauthorized response (**live-probed**).
 - A browser-side login call exists at `POST /api/v2/auth/login_sensecraft` and the SPA supplies an `Authorization` header whose value is a token held in its auth store (**client-observed**).
-- The store has `token`, `refreshToken`, `sensecraftApiKey`, and `isAuthenticated` properties. `sensecraftApiKey` is an app setting/state field; the bundle evidence does **not** establish it as authentication for HMI account routes.
-- On 2026-09-29, the user's configured API key authenticated `GET /api/v2/auth/profile` when sent as `api-key: <key>`; the returned profile account matched the account the user identified (**live-probed**, key omitted from output).
+- The store has `token`, `refreshToken`, `sensecraftApiKey`, and `isAuthenticated` properties. Although the field name alone did not establish authentication support, a live request verified that an account API key is accepted by account routes using the `api-key` header.
+- On 2026-09-29, an account API key authenticated `GET /api/v2/auth/profile` when sent as `api-key: <key>` (**live-probed**; no profile details were retained).
 - The same key was rejected as either raw `Authorization: <key>` or `Authorization: Bearer <key>`. Use the `api-key` header for this tested credential.
 
 ### Integration implication
 
-For the tested account key, account access works with the `api-key` request header. Raw and Bearer `Authorization` formats failed. The SPA also has a token-based `login_sensecraft` call; that is a separate client path and does not override the successful API-key probe. The official docs still do not publish this REST authentication contract, so do not infer token lifecycle, broad permissions, or long-term stability from the observed request alone.
+Account access was verified with an API key in the `api-key` request header. Raw and Bearer `Authorization` formats failed in the same profile probe. The SPA also has a token-based `login_sensecraft` call; that is a separate client path. The official docs still do not publish this REST authentication contract, so do not infer token lifecycle, broad permissions, or long-term stability from the observed request alone.
 
-The MCP should initially accept a short-lived access token via a protected environment/configuration provider and fail closed on 401. Never request, log, echo, persist in tool output, or commit passwords, refresh tokens, or API keys. Do not implement browser login, account registration, or token harvesting as part of the MCP. Add refresh support only after Seeed documents the supported non-browser flow and its cookie requirements.
+The MCP should accept the account API key from a protected environment/configuration provider, send it in the `api-key` header, and fail closed on 401. Never request, log, echo, persist in tool output, or commit passwords, refresh tokens, or API keys. Do not implement browser login, account registration, or token harvesting as part of the MCP. Add refresh support only after Seeed documents the supported non-browser flow and its cookie requirements.
 
 ## Response envelope and errors
 
@@ -266,10 +266,10 @@ Performed on 2026-09-29 from this workspace using Python's standard-library `url
 |`GET .../api/v2/template/detail/9`|`code: 200`; public template detail returned.|
 |`GET .../api/v2/auth/profile`|application `code: 401`, `User unauthorized`.|
 |`GET .../api/v2/user/template?page=1&page_size=1`|application `code: 401`, `User unauthorized`.|
-| Authenticated `GET .../api/v2/auth/profile` with `api-key` header|API `code: 200`; account matched the user's stated account. Raw and Bearer `Authorization` forms returned API `code: 401`.|
-| Authenticated `GET .../api/v2/user/page?page=1&page_size=100`|API `code: 200`; workspace pages returned. Account-specific names and IDs are omitted.|
-| Authenticated page filters `types=layout` and `types=img`|Each returned matching records; `types=image` and `types=photo` returned none.|
-| Authenticated `GET .../api/v2/user/playlist?page=1&page_size=100`|API `code: 200`; playlist records returned. Account-specific names and IDs are omitted.|
+|Authenticated `GET .../api/v2/auth/profile` with `api-key` header|API `code: 200`. Raw and Bearer `Authorization` forms returned API `code: 401`. No profile fields were retained.|
+|Authenticated `GET .../api/v2/user/page?page=1&page_size=100`|API `code: 200`; workspace pages returned. Account-specific names and IDs are omitted.|
+|Authenticated page filters `types=layout` and `types=img`|Each returned matching records; `types=image` and `types=photo` returned none.|
+|Authenticated `GET .../api/v2/user/playlist?page=1&page_size=100`|API `code: 200`; playlist records returned. Account-specific names and IDs are omitted.|
 
 Counts and sample records are time-dependent. Probes were reads only; no login, create, update, delete, AI generation, or device operation was attempted. The authenticated probes used the local `.env` key through an `api-key` header; the key was never printed or saved to tracked docs.
 
