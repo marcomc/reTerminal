@@ -48,10 +48,12 @@ The SPA uses a shared HTTP client (`kr`) for the HMI API. JSON requests use Axio
 - `GET /api/v2/user/template?page=1&page_size=1` without credentials returned the same application-level unauthorized response (**live-probed**).
 - A browser-side login call exists at `POST /api/v2/auth/login_sensecraft` and the SPA supplies an `Authorization` header whose value is a token held in its auth store (**client-observed**).
 - The store has `token`, `refreshToken`, `sensecraftApiKey`, and `isAuthenticated` properties. `sensecraftApiKey` is an app setting/state field; the bundle evidence does **not** establish it as authentication for HMI account routes.
+- On 2026-09-29, the user's configured API key authenticated `GET /api/v2/auth/profile` when sent as `api-key: <key>`; the returned profile account matched the account the user identified (**live-probed**, key omitted from output).
+- The same key was rejected as either raw `Authorization: <key>` or `Authorization: Bearer <key>`. Use the `api-key` header for this tested credential.
 
 ### Integration implication
 
-Treat account access as bearer-token authentication only after confirming the exact header value format and token lifecycle with a valid account session. The bundle passes the token as the raw `Authorization` header value for `login_sensecraft`; do not silently assume it is either raw JWT or `Bearer <JWT>` for every endpoint. In particular, an API key supplied for a separate data provider must not be mistaken for a SenseCraft account credential.
+For the tested account key, account access works with the `api-key` request header. Raw and Bearer `Authorization` formats failed. The SPA also has a token-based `login_sensecraft` call; that is a separate client path and does not override the successful API-key probe. The official docs still do not publish this REST authentication contract, so do not infer token lifecycle, broad permissions, or long-term stability from the observed request alone.
 
 The MCP should initially accept a short-lived access token via a protected environment/configuration provider and fail closed on 401. Never request, log, echo, persist in tool output, or commit passwords, refresh tokens, or API keys. Do not implement browser login, account registration, or token harvesting as part of the MCP. Add refresh support only after Seeed documents the supported non-browser flow and its cookie requirements.
 
@@ -207,6 +209,24 @@ AI generation may consume account quota and create stored assets; expose only as
 |`POST`|`/api/v2/user/playlist/upsert_pages`|Add/update playlist membership.|
 |`GET`|`/api/v2/user/device/playlist`|Playlist view scoped to device.|
 
+#### My Designs, My Photos, and My Playlist
+
+The account UI's **My Designs** and **My Photos** are both backed by
+`GET /api/v2/user/page` (**live-probed 2026-09-29**). The client builds query
+parameters `page`, `page_size`, `types` (comma-separated when multiple types
+are requested), and `resolution`. Observed page `type` values are `layout`
+for designs and `img` for photos. The photo filter is `types=img`;
+`types=image` and `types=photo` returned no records in the probe. Responses
+include a `total` and page records with fields such as `id`, `name`, `type`,
+`resolution`, and `created_at`. Do not confuse these workspace pages with
+community templates; they are separate API collections.
+
+**My Playlist** is backed by `GET /api/v2/user/playlist` with `page` and
+`page_size` and optional `mac_address` (**client-observed**; account list
+live-probed). Fetching pages within one playlist uses
+`GET /api/v2/user/playlist/pages?playlist_id={id}`. Listing membership is
+read-only; adding or changing membership uses a separate mutation route.
+
 ### Devices, deployment, data, sharing, and calendar
 
 |Method|Path|Notes|
@@ -246,8 +266,12 @@ Performed on 2026-09-29 from this workspace using Python's standard-library `url
 |`GET .../api/v2/template/detail/9`|`code: 200`; public template detail returned.|
 |`GET .../api/v2/auth/profile`|application `code: 401`, `User unauthorized`.|
 |`GET .../api/v2/user/template?page=1&page_size=1`|application `code: 401`, `User unauthorized`.|
+| Authenticated `GET .../api/v2/auth/profile` with `api-key` header|API `code: 200`; account matched the user's stated account. Raw and Bearer `Authorization` forms returned API `code: 401`.|
+| Authenticated `GET .../api/v2/user/page?page=1&page_size=100`|API `code: 200`; workspace pages returned. Account-specific names and IDs are omitted.|
+| Authenticated page filters `types=layout` and `types=img`|Each returned matching records; `types=image` and `types=photo` returned none.|
+| Authenticated `GET .../api/v2/user/playlist?page=1&page_size=100`|API `code: 200`; playlist records returned. Account-specific names and IDs are omitted.|
 
-Counts and sample records are time-dependent. Probes were reads only; no login, create, update, delete, AI generation, or device operation was attempted.
+Counts and sample records are time-dependent. Probes were reads only; no login, create, update, delete, AI generation, or device operation was attempted. The authenticated probes used the local `.env` key through an `api-key` header; the key was never printed or saved to tracked docs.
 
 ## Open questions for implementation
 
