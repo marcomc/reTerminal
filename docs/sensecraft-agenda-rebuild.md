@@ -1,7 +1,7 @@
 # Ricostruire l’agenda SenseCraft
 
-Runbook per un agente che deve ripristinare o ricreare l’agenda E1002 già
-implementata. Baseline: **30 settembre 2026**, dopo le correzioni di batteria
+Runbook per un agente che deve ripristinare o ricreare Google Calendar Today
+nel profilo E1002 già implementato. Baseline: **30 settembre 2026**, dopo le correzioni di batteria
 dark, eventi ancora attivi, orario di fine, capacità verticale e selezione
 estesa dei calendari. Questa guida è indipendente dalla costruzione del MCP.
 
@@ -42,19 +42,20 @@ nomi e identificativi non sono riportati qui.
 
 ## Materiale necessario
 
-**Il solo clone Git non basta.** I sorgenti operativi, la configurazione e le
-immagini sono esclusi da Git. Conservare un backup privato delle directory
-seguenti, mantenendo i percorsi relativi al progetto. La guida non crea quel
-backup. Le stesse immagini non sono riproducibili esattamente da nuovi prompt.
+**Il clone contiene sorgenti e artwork**, sotto
+`templates/google-calendar-today/`. Le risorse dell’account e lo stato locale
+sono esclusi da Git: ripristinarli da un backup privato per ricreare la stessa
+installazione. Per un altro account partire dagli esempi senza credenziali.
+Questa guida non crea il backup privato.
 
 |Percorso|Ruolo nel ripristino|
 |---|---|
-|`.private/native-agenda/agenda.html`|Sorgente definitivo: CSS, JavaScript e fixture di sviluppo.|
-|`.private/native-agenda/build.py`|Manifest degli asset, compilazione production, upload con cache e layout privato/portabile.|
-|`.private/native-agenda/configure.py`|Configurazione una tantum, calendario/città, preview e salvataggio.|
-|`.private/native-agenda/persist.py`|Salva pagina e template esistenti; richiede entrambi gli ID; effettua refresh deploy.|
-|`.private/native-agenda/verify-live.py`|Readback dello snapshot e nuovo render; include una prova che richiede almeno dieci calendari nell’account.|
-|`.private/native-agenda/check.js`|Controlli semantici di sviluppo e production.|
+|`templates/google-calendar-today/src/agenda.html`|Sorgente definitivo: CSS, JavaScript e fixture di sviluppo.|
+|`templates/google-calendar-today/scripts/build.py`|Manifest degli asset, compilazione production, upload con cache e layout privato/portabile.|
+|`templates/google-calendar-today/scripts/configure.py`|Configurazione una tantum, calendario/città, preview e salvataggio.|
+|`templates/google-calendar-today/scripts/persist.py`|Salva pagina e template esistenti; richiede entrambi gli ID; effettua refresh deploy.|
+|`templates/google-calendar-today/scripts/verify-live.py`|Readback dello snapshot e nuovo render; include una prova che richiede almeno dieci calendari nell’account.|
+|`templates/google-calendar-today/scripts/check.js`|Controlli semantici di sviluppo e production.|
 |`.private/native-agenda/config.json`|Impostazioni definitive e mappatura privata dei calendari.|
 |`.private/native-agenda/candidate-private.json`|Layout finale completo, inclusi metadati del canvas.|
 |`.private/native-agenda/candidate-portable.json`|Versione priva di sessione, calendari e binding batteria.|
@@ -63,14 +64,15 @@ backup. Le stesse immagini non sono riproducibili esattamente da nuovi prompt.
 |`.private/native-agenda/thumbnail-uploads.json`|Cache delle miniature.|
 |`.private/native-agenda/befana-long-titles.png`|Miniatura dimostrativa con eventi fittizi per il template riutilizzabile.|
 |`.private/native-agenda/build-report.json`, `final-account-audit.json`|Baseline di compilazione e verifiche precedenti.|
-|`.private/design-review/approved-originals/`|15 mockup approvati, lasciati immutati.|
-|`.private/design-review/monthly/`|12 sfondi mensili.|
-|`.private/design-review/design-manifest.json` e asset referenziati|Inventario con 35 hash delle immagini preservate, comprese simulazioni non caricate.|
-|`.private/feasibility/private-settings.json`|Bootstrap privato richiesto dagli helper.|
+|`templates/google-calendar-today/design-review/approved-originals/`|15 mockup approvati, lasciati immutati.|
+|`templates/google-calendar-today/design-review/monthly/`|12 sfondi mensili.|
+|`templates/google-calendar-today/design-review/manifest.json` e asset referenziati|Inventario sanificato: 34 immagini originali versionabili e una miniatura fittizia; un mockup con nomi reali resta privato.|
+|`.private/native-agenda/private-settings.json`|Bootstrap privato richiesto dagli helper.|
 
-Conservare anche gli altri file di queste directory per mantenere rapporti e
-backup storici. Credenziali, configurazioni, miniature con eventi reali e
-risposte dell’account vanno custodite come dati privati.
+Conservare lo stato privato per mantenere rapporti e backup storici. Il vecchio
+bootstrap in `.private/feasibility/` è una copia storica; gli script versionati
+leggono `.private/native-agenda/private-settings.json`. Credenziali,
+configurazioni, miniature con eventi reali e risposte dell’account restano privati.
 
 Prerequisiti operativi:
 
@@ -95,19 +97,21 @@ leggere questi passaggi senza eseguirli.
 ### 1. Recuperare la baseline e verificare le risorse
 
 1. Leggere `AGENTS.md`; controllare branch, stato Git e modifiche esistenti.
-2. Ripristinare il bundle privato. Confrontare le impronte sotto e i 35 hash
-   del manifest; mantenere immutati gli originali approvati.
+2. Recuperare i sorgenti e gli asset dal clone e ripristinare lo stato privato.
+   Verificare gli hash del manifest versionato; mantenere immutati gli originali
+   approvati. Le impronte sotto identificano la baseline storica prima della
+   riorganizzazione dei percorsi e formattazione degli script.
 3. Copiare `config.json` e `candidate-private.json` in backup privati distinti
    **prima** della build. Saranno necessari per preservare la geometria finale.
 4. Verificare che `.env` e `.private/` risultino ignorati con `git check-ignore`;
-   se necessario aggiungere `.private/` a `.git/info/exclude`.
+   `.private/` è esclusa dal `.gitignore` del progetto.
 5. Caricare la key e validare la configurazione:
 
    ```sh
    set -a
    source .env
    set +a
-   python3 .private/native-agenda/configure.py --check-only
+   python3 templates/google-calendar-today/scripts/configure.py --check-only
    ```
 
 6. Leggere via API pagina, dispositivo e template correnti usando gli ID del
@@ -121,9 +125,9 @@ risorse non sono più valide, seguire il ramo [risorse nuove](#installazione-con
 ### 2. Compilare il documento production
 
 ```sh
-node .private/native-agenda/check.js
-python3 .private/native-agenda/build.py --production
-node .private/native-agenda/check.js --production
+node templates/google-calendar-today/scripts/check.js
+python3 templates/google-calendar-today/scripts/build.py --production
+node templates/google-calendar-today/scripts/check.js --production
 ```
 
 `build.py` effettua upload persistenti quando la cache non contiene lo stesso
@@ -224,7 +228,7 @@ i candidati, nessun binding privato nel portabile e preview effettiva ispezionat
 Con pagina e template esistenti, eseguire:
 
 ```sh
-python3 .private/native-agenda/persist.py
+python3 templates/google-calendar-today/scripts/persist.py
 ```
 
 L’helper legge e salva backup dello stato corrente, genera una preview reale,
@@ -240,7 +244,7 @@ paginare il readback prima di concludere che la scrittura è fallita.
 Se l’account ha almeno dieci calendari collegati:
 
 ```sh
-python3 .private/native-agenda/verify-live.py
+python3 templates/google-calendar-today/scripts/verify-live.py
 ```
 
 Per account con meno calendari, effettuare le stesse letture di verifica
@@ -268,7 +272,10 @@ backup non sono più utilizzabili:
    calendari e usare **Load Data**. Recuperare privatamente il `session_id`
    autorizzato dal callback/configurazione salvata o dall’URL della sorgente
    eventi. Non riutilizzare la sessione di un altro installatore.
-4. Preparare `private-settings.json` con le nuove risorse ed `event_url` valido.
+4. Copiare gli esempi in `templates/google-calendar-today/examples/` nello stato
+   privato `.private/native-agenda/`, rinominandoli `private-settings.json` e
+   `config.json`, poi sostituire i placeholder. Preparare il bootstrap con le
+   nuove risorse ed `event_url` valido.
    Preparare `config.json` dai default del sorgente, con sessione e mappatura
    privata. La key resta in `.env`; il binding viene costruito dall’helper.
 5. Compilare per ottenere i candidati. Inserire l’HTML nella nuova pagina via
@@ -277,8 +284,8 @@ backup non sono più utilizzabili:
 6. Rileggere i calendari e configurare le scelte con indici **della lista fresca**:
 
    ```sh
-   python3 .private/native-agenda/configure.py --list-calendars
-   python3 .private/native-agenda/configure.py \
+   python3 templates/google-calendar-today/scripts/configure.py --list-calendars
+   python3 templates/google-calendar-today/scripts/configure.py \
      --calendar '1:AA:#D32F2F' --calendar '2:BB:#1565C0' \
      --set language=it --set intensity=50 --preview
    ```
@@ -326,9 +333,9 @@ dell’utente e i binding privati.
 Esempi di configurazione senza salvataggio:
 
 ```sh
-python3 .private/native-agenda/configure.py \
+python3 templates/google-calendar-today/scripts/configure.py \
   --set markerMode=initials_only --set showTimezone=false --set intensity=37 --preview
-python3 .private/native-agenda/configure.py --city Roma --city-index 1 --preview
+python3 templates/google-calendar-today/scripts/configure.py --city Roma --city-index 1 --preview
 ```
 
 La geocodifica usa Open-Meteo, seleziona il risultato indicato e imposta nome,
@@ -433,8 +440,12 @@ Conservare questa distinzione nei resoconti del ripristino.
 
 ## Impronte della baseline
 
-SHA-256 dei sorgenti privati ispezionati il 30 settembre 2026. Questa sezione
-identifica la versione da recuperare; gli hash non sostituiscono il backup.
+SHA-256 della baseline privata precedente alla riorganizzazione del 30
+settembre 2026. Il sorgente HTML e gli artwork sono stati copiati immutati;
+gli script versionati hanno ora percorsi separati per sorgenti e stato privato
+e formattazione leggibile, quindi i loro hash differiscono. Queste impronte
+identificano i backup storici; per gli artwork correnti usare il manifest
+versionato. I file `.private/*.py` di compatibilità non sono la baseline.
 
 ```text
 agenda.html
