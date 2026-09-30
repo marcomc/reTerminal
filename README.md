@@ -10,7 +10,7 @@ Research notes for a future MCP server that can operate a SenseCraft HMI account
 
 ## Evidence scope
 
-The documents distinguish official platform documentation, behavior observed in the public web application's JavaScript bundle, and live read-only HTTP probes. The service does not publish an OpenAPI specification in the sources examined. Undocumented request and response details are explicitly marked for verification.
+The documents distinguish official platform documentation, behavior observed in the public web application's JavaScript bundle, authorized live API probes, inspected renderer output, and account writes. The service does not publish an OpenAPI specification in the sources examined. Undocumented request and response details are explicitly marked for verification.
 
 ## License
 
