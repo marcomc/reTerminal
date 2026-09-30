@@ -1,0 +1,314 @@
+{
+  "schema_version": 1,
+  "runtime_dimensions": [
+    800,
+    480
+  ],
+  "decorations": [
+    {
+      "path": "monthly/01-january-dark.png",
+      "sha256": "0fb081848fa3b2f5e307ca59be3834eb66036d7e76c6b6368448f0dd9e3034bb",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "monthly/01-january.png",
+      "sha256": "1b49609afdeba2495dabd1e56dc275e09fce896dc4a3488e3de5666684254c16",
+      "mockup_crop": false,
+      "dark_variant": "monthly/01-january-dark.png"
+    },
+    {
+      "path": "monthly/02-february-dark.png",
+      "sha256": "c9339764d9f710a7f7d79da9df3df409838604d4ba3373e1a97a8e90fe174bad",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "monthly/02-february.png",
+      "sha256": "7c600ee409bb85df99eacca5ed4f38c1532315c6f31f5e2ff628bbce0dec9ff7",
+      "mockup_crop": false,
+      "dark_variant": "monthly/02-february-dark.png"
+    },
+    {
+      "path": "monthly/03-march-dark.png",
+      "sha256": "0d48f4cda3d85b6bf7b5f91cbec43b2e6a9f191988e3e96c7b7ae5484966d31f",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "monthly/03-march.png",
+      "sha256": "5ff8915021bfc4aec768942dd5a34f9af3cf9c99f259cde0c04168c138110bd0",
+      "mockup_crop": false,
+      "dark_variant": "monthly/03-march-dark.png"
+    },
+    {
+      "path": "monthly/04-april-dark.png",
+      "sha256": "ca2877c9ef8a4ae0a68f01d88ec5c367e727dd1049650f84f00c8c6219cd9805",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "monthly/04-april.png",
+      "sha256": "d959041ff93585967fdbee031ebf615043c2b629f687cc45037a036979a17a9b",
+      "mockup_crop": false,
+      "dark_variant": "monthly/04-april-dark.png"
+    },
+    {
+      "path": "monthly/05-may-dark.png",
+      "sha256": "f57e29924b762d5746d6d4429d8e59d7e6b041c487892d4c431e368828ffc099",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "monthly/05-may.png",
+      "sha256": "8ecb75b3ccd554b0940b4579d16bc94762af1b9d33e0f7020fed1d00f9f44b16",
+      "mockup_crop": false,
+      "dark_variant": "monthly/05-may-dark.png"
+    },
+    {
+      "path": "monthly/06-june-dark.png",
+      "sha256": "134998acd09bfa52b6bbc627fcfbd49e65428bdbfacea8c46026d6a1766027e5",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "monthly/06-june.png",
+      "sha256": "56a45b1da3af14fde72a9eb53999bcc58361135341a9a5e20815951a5ce33176",
+      "mockup_crop": false,
+      "dark_variant": "monthly/06-june-dark.png"
+    },
+    {
+      "path": "monthly/07-july-dark.png",
+      "sha256": "9583e45f5c0b6995f8792bb9b244264d71b57f1d471f1b259e8cfb0fb9f75eb5",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "monthly/07-july.png",
+      "sha256": "23819e67ac6e18396b678eaeab77898e3efa8be84a2d9e9e4aea76813690ed37",
+      "mockup_crop": false,
+      "dark_variant": "monthly/07-july-dark.png"
+    },
+    {
+      "path": "monthly/08-august-dark.png",
+      "sha256": "c9e2f8676001c8269839f0a0244ad5149e5671c9442105d1e8e9c595430a0ef5",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "monthly/08-august.png",
+      "sha256": "3099f78c4d997cde3b627b6107970f1826821481674bc875491c414570d97206",
+      "mockup_crop": false,
+      "dark_variant": "monthly/08-august-dark.png"
+    },
+    {
+      "path": "monthly/09-september-dark.png",
+      "sha256": "840e362b66fcd068fb9c23dbc99481bd3c72df4e5af901ccfc0cddf9a7a78a83",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "monthly/09-september.png",
+      "sha256": "7ff055be51558e7afe0bf4cd7cbd43486b7408ddde37b2a278d44a3a7f3c060d",
+      "mockup_crop": false,
+      "dark_variant": "monthly/09-september-dark.png"
+    },
+    {
+      "path": "monthly/10-october-dark.png",
+      "sha256": "a5a083e19a1db34a8c3f0aab03468d33a15931bfcf1e04d944654a2b19ca6409",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "monthly/10-october.png",
+      "sha256": "28a8c0e0374516fced5d42f507072633d3e0f07114e2f769f4929b1dd6b34d6c",
+      "mockup_crop": false,
+      "dark_variant": "monthly/10-october-dark.png"
+    },
+    {
+      "path": "monthly/11-november-dark.png",
+      "sha256": "ea2bf4aff8c82c91c327c3945aa1e216601b35428dd20284ea6027ad8e447cf5",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "monthly/11-november.png",
+      "sha256": "93bfa2c8744f555cf391d8574f63363d3aaad79eb0b91e2d2c1b01441615dc1a",
+      "mockup_crop": false,
+      "dark_variant": "monthly/11-november-dark.png"
+    },
+    {
+      "path": "monthly/12-december-dark.png",
+      "sha256": "1ed73c870a1ef1bfa40157267c0911c2c7ac6b15286a20cdc1cf02c81abe413d",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "monthly/12-december.png",
+      "sha256": "6368ea99f6e71513da27cc7a12b1228a35142025ae144a0e0aefd19a4f5597e8",
+      "mockup_crop": false,
+      "dark_variant": "monthly/12-december-dark.png"
+    },
+    {
+      "path": "themes/autumn-dark.png",
+      "sha256": "2df8285895a966c6a6d2b66751d681e6a2cc58e5411598547c7965b5ae46c172",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "themes/autumn.png",
+      "sha256": "75b869f736f859cb6183def6cd02ccf6a22faa143162886911fea8dbb0fe23a2",
+      "mockup_crop": false,
+      "content": "decorative background only; no calendar interface",
+      "dark_variant": "themes/autumn-dark.png"
+    },
+    {
+      "path": "themes/carnival-dark.png",
+      "sha256": "2d52fa53ca7f21ef5878b268fcd6477a59d97c3c445685c95d4f9800f6e8529b",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "themes/carnival.png",
+      "sha256": "db4cbd52ea381eb7b17e0421652e5575b041033c48daea49b110f647dc6446bd",
+      "mockup_crop": false,
+      "content": "decorative background only; no calendar interface",
+      "dark_variant": "themes/carnival-dark.png"
+    },
+    {
+      "path": "themes/christmas-dark.png",
+      "sha256": "baaebfd176de795860028421d287d5eb788fa9f1b3f70f30ec91317a63517e8b",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "themes/christmas.png",
+      "sha256": "3a49829aced7eb59cfb03a4548fa37adb162cd508d244c990810decd267ad668",
+      "mockup_crop": false,
+      "content": "decorative background only; no calendar interface",
+      "dark_variant": "themes/christmas-dark.png"
+    },
+    {
+      "path": "themes/easter-dark.png",
+      "sha256": "6fa9c0f5f94e29ad5b5a453ee6cce0a3098abb0cbbef2c4c0e082e8503d8776e",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "themes/easter.png",
+      "sha256": "958077b8a004f7ebe2449a8ce10f95c224de0318d20fe2ab9357767403e0cfde",
+      "mockup_crop": false,
+      "content": "decorative background only; no calendar interface",
+      "dark_variant": "themes/easter-dark.png"
+    },
+    {
+      "path": "themes/epiphany-dark.png",
+      "sha256": "01ba67643dfa19a8938055d185b15fba10a3cdccfa6e1771776ad8bd076ea11e",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "themes/epiphany.png",
+      "sha256": "a7e08586fe44c7806f829a07d8e2a0414c453ffd200b842a9091ca48600939b9",
+      "mockup_crop": false,
+      "content": "decorative background only; no calendar interface",
+      "dark_variant": "themes/epiphany-dark.png"
+    },
+    {
+      "path": "themes/floral-dark.png",
+      "sha256": "208971bed3acc3699fb9eb96b03648ec4abcec6d5534c91f7fb5bfaf2ef2e6e9",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "themes/floral.png",
+      "sha256": "19b510cc01aadb87c467c198d08f152be6392b94e3b2e3e4ccb5cc7c150a246c",
+      "mockup_crop": false,
+      "content": "decorative background only; no calendar interface",
+      "dark_variant": "themes/floral-dark.png"
+    },
+    {
+      "path": "themes/halloween-dark.png",
+      "sha256": "51be4304c1054e9a9df6a1c4cf38a4347c751c971194b8546438cc4c7056337f",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "themes/halloween.png",
+      "sha256": "d7e5bece22a6a8ccfaabdee20fcba81439c9c745facc51f4af6c41a7abed6755",
+      "mockup_crop": false,
+      "content": "decorative background only; no calendar interface",
+      "dark_variant": "themes/halloween-dark.png"
+    },
+    {
+      "path": "themes/lgbtq-dark.png",
+      "sha256": "daf0721126e32590eb5280c79a63111685e59aab91002081abd821da2d6e4750",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "themes/lgbtq.png",
+      "sha256": "db77ac88477d6e04c69a8e3c122099c032ad8f72affc98bb9674882934882358",
+      "mockup_crop": false,
+      "content": "decorative background only; no calendar interface",
+      "dark_variant": "themes/lgbtq-dark.png"
+    },
+    {
+      "path": "themes/spring-dark.png",
+      "sha256": "ab563d96a8a1111a4d1e07a03cfb9e324a9679e8d1f9f840c2e5a5028a769032",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "themes/spring.png",
+      "sha256": "0f43c9344e45b627011d6c5990da3b9ec8f794d7ab1c5651ba3f31541dbca5c2",
+      "mockup_crop": false,
+      "content": "decorative background only; no calendar interface",
+      "dark_variant": "themes/spring-dark.png"
+    },
+    {
+      "path": "themes/summer-dark.png",
+      "sha256": "0663c54beb00e0a2b9217e7eeaecb4e1b0d579fa3b6c2aead301d3de96e0a19c",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "themes/summer.png",
+      "sha256": "486113d15d32e6b5498cf989649d1904c6df716c4dec9d6047df54dde25b288e",
+      "mockup_crop": false,
+      "content": "decorative background only; no calendar interface",
+      "dark_variant": "themes/summer-dark.png"
+    },
+    {
+      "path": "themes/unicorn-dark.png",
+      "sha256": "6ebd50aed0a92b3d873b02c929c68774a3a2a41afdcfbd18a5cb232032ff8c7a",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "themes/unicorn.png",
+      "sha256": "b45226b588f1fb7a49540f05c2d59cbb9a7ead5c30c52c292fa1674673510a3b",
+      "mockup_crop": false,
+      "content": "decorative background only; no calendar interface",
+      "dark_variant": "themes/unicorn-dark.png"
+    },
+    {
+      "path": "themes/winter-dark.png",
+      "sha256": "7b4632c7bbcf6e88405f0a274516f2583c696cfac86648f783451082b7f9039c",
+      "mockup_crop": false,
+      "content": "dark decorative background only; no calendar interface"
+    },
+    {
+      "path": "themes/winter.png",
+      "sha256": "3abe7530ab0cb21db2a4955b1aa937a7973c873a15693e38f5152ad06931ed55",
+      "mockup_crop": false,
+      "content": "decorative background only; no calendar interface",
+      "dark_variant": "themes/winter-dark.png"
+    }
+  ],
+  "thumbnail": {
+    "path": "thumbnail.png",
+    "sha256": "3581b515216b76292862e094dcc8d589d20386922c94a84749645d96dfe300bc",
+    "content": "fictional events only"
+  }
+}

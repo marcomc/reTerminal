@@ -1,0 +1,8 @@
+{
+  "api_key": "REPLACE_WITH_SENSECRAFT_API_KEY",
+  "session_id": "REPLACE_WITH_AUTHORIZED_GOOGLE_SESSION",
+  "resources": {
+    "page_id": "REPLACE_WITH_PRIVATE_PAGE_ID",
+    "device_id": "REPLACE_WITH_DEVICE_ID"
+  }
+}

@@ -2,3 +2,12 @@
 .env
 .env.*
 !.env.example
+/sensecraft.local.json
+/sensecraft.connection.local.json
+/.sensecraft.connection.local.*.tmp
+/.sensecraft.local.*.tmp
+
+# Installation state, credentials, previews and API captures
+/.private/
+__pycache__/
+*.py[cod]

@@ -55,6 +55,9 @@ Follow `${HOME}/AGENTS.md` for canonical user-wide policy.
 
 ### SenseCraft API Research
 
+- When restoring the implemented agenda or recreating its installation, follow
+  `docs/sensecraft-agenda-rebuild.md` before starting API discovery. Keep its
+  restoration sequence aligned with changes to the agenda implementation.
 - Treat `docs/sensecraft-hmi-api.md` as the API evidence record and
   `docs/mcp-implementation-brief.md` as the implementation handoff. When a
   session or chat establishes new API behavior, update both documents in the

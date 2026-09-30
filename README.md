@@ -1,17 +1,40 @@
 # SenseCraft HMI API and MCP Handoff
 
-Research notes for a future MCP server that can operate a SenseCraft HMI account. This directory contains the API evidence and implementation instructions; it does not contain an MCP server implementation.
+API research, template sources and implementation instructions for SenseCraft
+HMI. The repository includes the implemented Google Calendar Today template;
+it does not contain an MCP server implementation.
 
 ## Table of Contents
 
 - [API field notes](docs/sensecraft-hmi-api.md)
 - [MCP implementation brief](docs/mcp-implementation-brief.md)
+- [Agenda rebuild runbook (Italian)](docs/sensecraft-agenda-rebuild.md)
+- [Private publication workflow and diagram](docs/sensecraft-private-publication.md)
+- [Configurator delivery specification and compact Goal](docs/sensecraft-configurator-goal.md)
+- [Private agenda consolidation verification](docs/sensecraft-consolidation-qa.md)
+- [Template sources (Italian)](templates/README.md)
+- [TODO](TODO.md)
+- [Changelog](CHANGELOG.md)
+- [Source and installation boundaries](#source-and-installation-boundaries)
 - [License](LICENSE)
+
+## Source and installation boundaries
+
+Reusable code and runtime artwork are versionable under
+`templates/google-calendar-today/`. Editable installation settings live in
+ignored `sensecraft.local.json` at the project root; API key, Google session
+and resource IDs are in ignored `sensecraft.connection.local.json`. `.env` is
+a legacy migration source. Generated layouts, caches and API captures remain in ignored `.private/`.
+The template's settings are supported through an API helper; its graphical
+preferences panel remains a design proposal.
 
 ## Evidence scope
 
-The documents distinguish official platform documentation, behavior observed in the public web application's JavaScript bundle, and live read-only HTTP probes. The service does not publish an OpenAPI specification in the sources examined. Undocumented request and response details are explicitly marked for verification.
+The documents distinguish official platform documentation, behavior observed in the public web application's JavaScript bundle, authorized live API probes, inspected renderer output, and account writes. The service does not publish an OpenAPI specification in the sources examined. Undocumented request and response details are explicitly marked for verification.
 
 ## License
 
-Original project documentation is licensed under [CC BY 4.0](LICENSE). This license does not apply to Seeed's services, trademarks, or third-party content cited here.
+Original project documentation and artwork are licensed under [CC BY 4.0](LICENSE).
+Template code is licensed under [MIT](templates/google-calendar-today/LICENSE).
+These licenses do not apply to Seeed's services, trademarks, or third-party
+content cited here.
