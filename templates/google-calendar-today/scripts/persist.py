@@ -4,7 +4,6 @@ This helper never creates, reads, updates, or publishes a reusable template.
 """
 
 import argparse
-import copy
 import datetime
 import hashlib
 import json
@@ -13,6 +12,7 @@ import urllib.request
 import uuid
 
 from paths import ROOT, load_api_key, load_config, load_settings
+from runtime import merge_candidate
 
 BASE = "https://sensecraft-hmi-api.seeed.cc"
 
@@ -84,47 +84,6 @@ def upload_thumbnail(path):
     return cache[digest]
 
 
-def _find_element(elements, identifier):
-    for element in elements:
-        if element.get("id") == identifier:
-            return element
-        found = _find_element(element.get("children", []), identifier)
-        if found is not None:
-            return found
-    return None
-
-
-def _remove_elements(elements, identifier):
-    """Remove obsolete owned elements while retaining every unrelated editor node."""
-    retained = []
-    for element in elements:
-        if element.get("id") == identifier:
-            continue
-        if "children" in element:
-            element["children"] = _remove_elements(element["children"], identifier)
-        retained.append(element)
-    return retained
-
-
-def merge_candidate(page_layout, candidate_layout):
-    """Keep editor metadata, update the agenda URL, and remove legacy battery."""
-    merged = copy.deepcopy(page_layout)
-    merged["stageElements"] = _remove_elements(
-        merged.get("stageElements", []), "native-battery"
-    )
-    current = _find_element(merged.get("stageElements", []), "native-agenda")
-    candidate = _find_element(
-        candidate_layout.get("stageElements", []), "native-agenda"
-    )
-    if current is None or candidate is None:
-        raise ValueError("Both page and candidate must contain native-agenda")
-    url = candidate.get("htmlConfig", {}).get("htmlUrl")
-    if not url:
-        raise ValueError("Candidate native-agenda has no HTML URL")
-    current.setdefault("htmlConfig", {})["htmlUrl"] = url
-    return merged
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -165,7 +124,9 @@ def main():
         if not device_id:
             raise ValueError("Connection configuration requires resources.device_id")
         devices = request("/api/v2/user/device/list")["result"]
-        device = next((item for item in devices if item["id"] == device_id), None)
+        device = next(
+            (item for item in devices if str(item["id"]) == str(device_id)), None
+        )
         if device is None:
             raise ValueError("Configured device is not available to this account")
         save("before-device.json", device)

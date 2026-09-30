@@ -31,4 +31,18 @@ const evening={...ongoing,id:'evening',start:{dateTime:'2026-10-01T21:00:00Z'},e
 const many=Array.from({length:100},(_,i)=>({...evening,id:'many-'+i}));check(active,`normalize(${JSON.stringify(many)}).length`,100);
 const later={...evening,id:'four-days',start:{dateTime:'2026-10-04T21:00:00Z'},end:{dateTime:'2026-10-04T23:00:00Z'}};check(active,`normalize([${JSON.stringify(later)}])[0].key`,'2026-10-04');
 check(active,"solarFor('2026-10-04')",null);
-fs.mkdirSync(state,{recursive:true,mode:0o700});fs.writeFileSync(path.join(state,production?'semantic-production-checks.json':'semantic-checks.json'),JSON.stringify({checked,passed:true},null,2));console.log('Native source semantic checks passed:',checked);
+// Theme choice and solar/manual light mode are independent.
+for(const theme of ['white','dark','floral','month-10'])for(const mode of ['light','dark'])for(const autoDark of [false,true]){
+ const scene=context({timezone:'UTC',backgroundMode:'manual',theme,mode,autoDark});
+ vm.runInContext("now=new Date('2026-09-30T12:00:00Z');document={body:{classList:{toggle(){}},dataset:{}},getElementById(){return{style:{},classList:{toggle(){}}}}}",scene);
+ vm.runInContext('decoration()',scene);check(scene,'document.body.dataset.mode',mode);
+ if(autoDark){vm.runInContext("weather={daily:{time:['2026-09-30'],sunrise:['2026-09-30T06:00'],sunset:['2026-09-30T18:00']}};decoration()",scene);check(scene,'document.body.dataset.mode','light');vm.runInContext("now=new Date('2026-09-30T20:00:00Z');decoration()",scene);check(scene,'document.body.dataset.mode','dark');}
+}
+async function batteryBindings(){
+ for(const [id,expected]of [[17,95],['17',95],[true,null],['invalid',null],[0,null]]){
+  const scene=context({showBattery:true,batteryBinding:{deviceId:id,apiKey:'sample-key'}});
+  vm.runInContext("fetch=async()=>({ok:true,json:async()=>({code:200,result:{battery:{level:95}}})})",scene);
+  assert.equal(await vm.runInContext('readBattery()',scene),expected);checked++;
+ }
+}
+batteryBindings().then(()=>{fs.mkdirSync(state,{recursive:true,mode:0o700});fs.writeFileSync(path.join(state,production?'semantic-production-checks.json':'semantic-checks.json'),JSON.stringify({checked,passed:true},null,2));console.log('Native source semantic checks passed:',checked);}).catch(error=>{console.error(error);process.exitCode=1;});

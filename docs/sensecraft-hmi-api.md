@@ -735,3 +735,71 @@ Private-page persistence reconciles editor metadata into the new layout.
 Verification must compare against that persisted layout, not the build's
 canonical canvas. Operational privacy, production and readback checks must
 remain effective under optimized Python execution; use explicit exceptions.
+
+### Local configurator integration: 2026-09-30
+
+**Web UI observation.** API-key management is at
+`https://sensecraft.seeed.cc/hmi/account`, under User Profile → Account &
+Security → API Key. Navigation was verified; key generation/reset was not.
+
+**Authorized live probes.** `GET /api/v2/auth/profile` returns identity in
+`result.user.user_id`. Device list records use `device_name`, `online_status`
+and `board.type`; the observed E1002 model is `reterminal_e1002`. Resource IDs
+may be numbers. The local HTTP boundary normalizes IDs to strings; the HTML
+battery reader accepts numeric IDs or strictly decimal strings and checks a
+positive safe integer before constructing the telemetry path. A first native
+preview exposed this mismatch; the telemetry request itself returned a valid
+level. The corrected source and compiled document have binding regressions.
+
+Account page lists may contain an empty string in `data`, even for the current
+layout page. Read `/api/v2/user/page/detail?page_id=...` before deciding whether
+that page contains a given element. The local page chooser resolves such list
+placeholders through detail. Keep resource choices cached during an active job
+instead of replacing them with empty lists merely because a refresh is busy.
+
+**Authorization API probe and local callback fixtures.**
+`GET /api/v2/calendar/authorize?redirect_uri=<loopback callback>` accepts the
+request and returns `result.auth_url` on `accounts.google.com`. The provider URL
+uses Seeed's `/api/v2/calendar/google/callback` redirect. This acceptance does
+not prove the complete provider-to-localhost return. The local callback's
+nonce/cookie/expiry/session-validation behavior is fixture-tested. Existing
+valid consent was reused; importing the session from the saved native private
+page was verified live through the panel. No independent Google OAuth app was
+introduced and no authorization was revoked.
+
+**Client-bundle observation and fixtures, not a live create.** New workspace
+page creation uses `POST /api/v2/user/page` with
+`{pages: [{name, type, data, dither, thumbnail, resolution}]}` and returns
+`result.ids`. Fixture tests cover creation, numeric/string IDs, a lost create
+response and reconciliation. The configurator uses a unique temporary name for
+ambiguous-create lookup, records the returned ID durably, then PUT/readback
+reconciles the exact final name. Do not advertise upstream idempotency or claim
+that a new real account was created in this check.
+
+**Authorized live private publication and renderer inspection.** The local
+panel previewed the installer's unsaved configuration via `/render/preview`,
+then confirmed local save and private-page publication. API readbacks verified
+the saved layout, device assignment and snapshot. Preferences remained identical
+to the pre-QA installation. The uploaded source has no account bindings; those
+are in the private fragment. No reusable template/publication request was
+created. These are service-side checks; no new physical-display observation was
+made. The configurator and advanced verifier share the production compiler and
+editor-preserving merge, and record the exact persisted layout after readback.
+
+**App-off renderer probe, 2026-09-30.** After the local configurator shut down
+and its loopback port refused connections, the advanced verifier read the
+selected calendars, private assignment and exact saved device snapshot, then
+submitted that persisted layout to `/render/preview`. SenseCraft returned a PNG
+and a service-hosted device image. An isolated reconstruction from only the two
+durable root JSON files rebuilt the layout without an upload call. This proves
+service-side rendering can use the installed HTTPS document without the local
+panel. It does not establish a later physical display refresh with the computer
+powered off.
+
+**Unverified upstream upload recovery.** No reliable upload inventory or
+idempotency key contract was established. A lost upload response leaves a
+private pending intent and stops automatic retry. Explicitly confirmed local
+recovery clears only incomplete intents, retains completed cache entries and
+warns that a remote orphan may remain. Local advisory locks serialize complete
+operations and read/modify/write transactions across configurator processes;
+this is client-side protection, not an upstream concurrency guarantee.

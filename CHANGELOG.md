@@ -1,6 +1,28 @@
 # Changelog
 
-## Unreleased
+## Unreleased — Local Google Calendar Today configurator
+
+### Added
+
+- Standard-library Python configurator with loopback server, default-browser launch,
+  occupied-port fallback and clean shutdown.
+- Italian responsive panel for all approved calendar, location, indicator, theme,
+  lighting, intensity and readability settings.
+- Validated API-key setup, native Google authorization and guided private-page import.
+- Unsaved native preview, local save and confirmed private page publication,
+  with page/assignment/snapshot readbacks and an autonomous cloud runtime.
+- Durable publication/upload journals, last-success recovery, safe retry,
+  browser job rejoin and advisory process locks.
+- Automated lifecycle/security/failure tests, complete browser option coverage
+  and documented QA evidence boundaries.
+
+### Changed
+
+- Shared production compiler and editor-preserving merge across CLI and web workflows.
+- Light/dark mode independent of selected theme; battery accepts HTTP-normalized IDs.
+- CI covers configurator Python lint and frontend contract/model checks.
+
+## Consolidation — 2026-09-30
 
 ### Added
 
@@ -29,5 +51,4 @@
 - Reusable-template mutation from the private-page persistence helper.
 - Stale operational dependencies on discarded design-review and bootstrap files.
 
-The graphical configurator is specified for the next delivery phase; it is not
-implemented by this consolidation.
+This consolidation was delivered separately before configurator development.

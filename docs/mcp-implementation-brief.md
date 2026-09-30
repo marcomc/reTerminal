@@ -691,3 +691,57 @@ Private-page persistence reconciles editor metadata into the new layout.
 Verification must compare against that persisted layout, not the build's
 canonical canvas. Operational privacy, production and readback checks must
 remain effective under optimized Python execution; use explicit exceptions.
+
+### Configurator implementation handoff: 2026-09-30
+
+The local implementation in `templates/google-calendar-today/configurator/`
+provides reusable examples for generic SenseCraft authoring: bounded transport,
+redacted errors, durable resource/upload recovery, actual native preview,
+editor-preserving private page save and assignment/snapshot verification.
+It does not implement an MCP server. Keep template-specific preferences/rendering
+separate from account/resource operations in a future adapter.
+
+Apply the paired API evidence above:
+
+- Normalize resource IDs at the UI/tool boundary, then validate the endpoint's
+  accepted type before rendering or issuing requests. Battery telemetry uses
+  positive numeric IDs; native HTML also accepts decimal string IDs.
+- Do not classify page capabilities from an empty list `data` placeholder.
+  Resolve detail first. Cache validated choices while operations serialize;
+  busy is not evidence that calendars/pages/devices vanished.
+- Validate keys with a read-only profile request. Identity is observed in
+  `result.user.user_id`; privately associate an account hash with its bindings.
+  A key change must not reuse another account's Google session or upload/page
+  cache. Key management is `/hmi/account`; generation/reset was not tested.
+- Native calendar authorization returns `result.auth_url`. Loopback request
+  acceptance is live evidence; full provider return remains unverified. Use
+  expiring nonce plus same-browser cookie and session validation when supported,
+  and retain the verified native-page import fallback. Never make manual session
+  copying an ordinary installation step.
+- The client/fixture creation contract is `{pages: [...]}` → `result.ids`.
+  Preserve that evidence boundary. Journal before creation, reconcile uncertainty
+  through a unique temporary identity, record the page ID, then reconcile the
+  final name with readback before deployment. Never blindly repeat create.
+- Preview, local save, account-page save and deployment are distinct effects.
+  Preview may upload source/artwork but must not promote preferences or mutate
+  page/device state. Expose that resource side effect honestly.
+- Serialize durable transactions and entire remote operations, including GET
+  discovery paths that persist metadata. Atomic replacement alone does not
+  serialize concurrent clients. Handle failed thread starts and shutdown without
+  leaking operation ownership.
+- Reuse uploaded assets by verified content hash. A lost upload response must
+  remain uncertain without a proven upstream inventory/idempotency contract.
+  Confirmed local recovery may leave an orphan; do not imply remote deletion.
+- Bind verification to the editor-preserving persisted layout. Exact page and
+  snapshot equality is service-side proof, distinct from physical screen proof.
+- A verified app-off render submitted the persisted snapshot after the local
+  panel's port closed. Treat the uploaded HTTPS document and private layout as
+  the runtime contract; a future MCP should never require a local web server
+  for normal display refresh. Keep physical delivery as a separate proof class.
+
+The local panel implements all approved settings with native renderer preview
+and confirmed private publication. It runs only while editing. Calendar/theme/
+solar decisions run in uploaded HTML on ordinary SenseCraft refresh. Native
+SenseCraft inspector controls and an embedded per-template preferences form
+remain separate unverified capabilities. See the configurator README and QA
+matrix instead of treating earlier form proposals as current implementation.

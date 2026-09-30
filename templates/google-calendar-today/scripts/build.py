@@ -15,6 +15,7 @@ from paths import (
     load_config,
     load_settings,
 )
+from runtime import production_html
 
 BASE = "https://sensecraft-hmi-api.seeed.cc"
 KEY = load_api_key()
@@ -100,23 +101,7 @@ html = SOURCE.read_text().replace(
     "/* ASSET_MANIFEST */{}", json.dumps(assets, separators=(",", ":"))
 )
 if "--production" in sys.argv:
-    start = html.index("const params=new URLSearchParams(location.search);")
-    end = html.index("\nfunction parts", start)
-    html = html[:start] + "let now=new Date();" + html[end:]
-    start = html.index("function syntheticEvents()")
-    end = html.index("\nfunction batteryPercentage(", start)
-    html = html[:start] + html[end:]
-    start = html.index("const w=testing?")
-    end = html.index("):fetch(weatherUrl", start) + 2
-    html = html[:start] + "const w=" + html[end:]
-    html = html.replace(
-        "let ev;if(testing)ev=Promise.resolve(syntheticEvents());else if", "let ev;if"
-    )
-    html = html.replace(
-        "const b=testing?Promise.resolve(78):readBattery();", "const b=readBattery();"
-    )
-    if "testing" in html or "syntheticEvents" in html:
-        raise ValueError("Production document contains test-only code")
+    html = production_html(SOURCE.read_text(), assets)
 settings = load_settings()
 config = load_config()
 if not 1 <= len(config["calendars"]) <= 10:
