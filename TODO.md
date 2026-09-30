@@ -5,8 +5,8 @@ Attività aperte; non sono funzionalità già implementate.
 ## Google Calendar Today
 
 - [ ] Pannello grafico per calendari, colori, temi e indicatori. Verificare
-  prima le possibilità di integrazione in SenseCraft; nessun servizio ospitato
-  aggiuntivo è autorizzato dalla fase corrente.
+  la specifica `docs/sensecraft-configurator-goal.md`: applicazione Python
+  locale, nessun servizio ospitato permanente.
 - [ ] Procedura di installazione per un nuovo utente: Google OAuth nativo,
   selezione calendari e configurazione privata del componente HTML. Il
   marketplace non completa automaticamente questa sequenza.
@@ -14,10 +14,6 @@ Attività aperte; non sono funzionalità già implementate.
   indipendente dal dispositivo; la versione attuale resta `800×480`, dither `3`.
 - [ ] Separare compilazione offline e upload nella build, preservando il
   controllo dei dati simulati nell’artefatto production.
-- [ ] Rendere facoltativa la verifica dei dieci calendari in `verify-live.py`:
-  oggi richiede almeno dieci calendari collegati.
-- [ ] Paginare anche il readback del template in `persist.py`, che attualmente
-  cerca il target nelle prime 100 voci dopo il salvataggio.
 - [ ] Valutare un binding batteria con credenziali più limitate: oggi la key
   account è nel fragment privato del layout e va protetta come una credenziale.
 - [ ] Valutare convenzioni regionali di Carnevale e maggiore precisione

@@ -4,29 +4,30 @@
 
 ### Added
 
-- Sorgenti di Google Calendar Today sotto `templates/google-calendar-today/`:
-  HTML, helper Python, controlli JavaScript esistenti ed esempi senza credenziali.
-- 25 decorazioni runtime, miniatura fittizia e manifest SHA-256.
-- Catalogo template, licenza MIT per il codice e TODO espliciti.
-- `.env.example` e regole Git condivise per stato privato e cache Python.
+- Versioned Google Calendar Today sources, runtime artwork and MIT code license.
+- 24 text-free light/dark background pairs with SHA-256 manifest associations.
+- Durable root preferences and connection examples, migration and regression tests.
+- Private publication diagram, rebuild runbook and configurator delivery specification.
 
 ### Changed
 
-- Nome del design e del template riutilizzabile: `Google Calendar Today`,
-  senza modello hardware. Rinomina confermata tramite API; il profilo layout
-  e le impostazioni restano invariati.
-- Sorgenti separati dallo stato dell’account; bootstrap e configurazioni locali
-  sono in `.private/native-agenda/`, mentre la key resta in `.env`.
-- Helper versionati autorevoli, con compatibilità per i vecchi comandi locali.
-- Runbook di ricostruzione aggiornato per sorgenti versionati, dati privati,
-  configurazione e limiti effettivi dell’installazione.
+- Private-page restoration no longer depends on a reusable/public template.
+- Root preferences and private connections survive deletion of generated state.
+- API credentials resolve through explicit environment override, private connection
+  configuration and legacy `.env` migration without shell execution.
+- Page persistence preserves editor metadata and verifies fresh readbacks;
+  deployment is explicitly requested with `--deploy`.
+- Future events are admitted by available layout space instead of a fixed
+  three-day cutoff; solar forecast coverage extends to 16 days.
+- Ten-calendar integration coverage is optional; normal verification uses the
+  installer's actual selection.
+- Documented active-event expiry, fixed time typography, adaptive row filling,
+  five languages, automatic themes and transparent dark-mode battery styling.
 
 ### Removed
 
-- Dal progetto: design review, mockup decisionali, prompt e probe esplorativi
-  non necessari al funzionamento o alla riconfigurazione. Conservate soltanto
-  le immagini richieste dalla build; gli originali rimossi sono recuperabili
-  dal Cestino locale.
+- Reusable-template mutation from the private-page persistence helper.
+- Stale operational dependencies on discarded design-review and bootstrap files.
 
-La riorganizzazione dei sorgenti non effettua nuovi upload o deploy e non
-implementa il pannello grafico delle preferenze.
+The graphical configurator is specified for the next delivery phase; it is not
+implemented by this consolidation.

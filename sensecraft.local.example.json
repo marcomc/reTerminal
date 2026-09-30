@@ -21,7 +21,6 @@
     "intensity": 50,
     "titleSize": 28,
     "minTitleSize": 25,
-    "session_id": "REPLACE_WITH_AUTHORIZED_GOOGLE_SESSION",
     "calendars": [
       {
         "id": "REPLACE_WITH_CALENDAR_ID",
@@ -32,10 +31,5 @@
     ],
     "hemisphere": "auto",
     "carnivalRule": "shrove_tuesday"
-  },
-  "resources": {
-    "page_id": null,
-    "device_id": null,
-    "template_id": null
   }
 }

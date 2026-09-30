@@ -704,3 +704,34 @@ mechanism from this readback alone. A device container can remain `800x480` whil
 root `stageSize` reflects a larger editor canvas. Preview reconciliation against
 the device resolution before saving; preserve unrelated editor metadata and
 verify both page data and deployed snapshot again after the final write.
+
+### Private-page independence after withdrawal: 2026-09-30
+
+**Authorized live withdrawal and readbacks, reported by the dedicated withdrawal
+chat.** `DELETE /api/v2/user/template` with `{id}` returned `code=200` without
+`result`. The reusable record disappeared from the complete paginated account
+list, and public detail returned `4301`. The server cleared the private page's
+`template` backlink, while page data, resolution and dither remained unchanged.
+Google calendar reads still succeeded. Device assignment and snapshot were
+preserved; this is API evidence, not a physical-screen check.
+
+A reusable template is therefore unnecessary for continued operation of this
+private page in the observed installation. Page-only helpers must not require
+`template_id`, recreate the record or submit a publication request. Do not infer
+general cascade behavior, deletion idempotency or share-link revocation from
+this one observation. Back up and read back dependent resources for any future
+authorized deletion.
+
+### Rendering verification consequences: 2026-09-30
+
+Local review found that a fixed three-day normalization horizon could hide the
+next returned event despite available screen space. The HTML consumer now sorts
+all non-expired selected events returned by SenseCraft; available row space is
+the presentation limit. Solar forecast coverage is 16 days; absent forecast
+entries are handled as unavailable rather than inventing times. This is a local
+rendering correction, not a new upstream date-range guarantee.
+
+Private-page persistence reconciles editor metadata into the new layout.
+Verification must compare against that persisted layout, not the build's
+canonical canvas. Operational privacy, production and readback checks must
+remain effective under optimized Python execution; use explicit exceptions.

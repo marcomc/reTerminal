@@ -2,14 +2,13 @@
 
 import argparse
 import json
-import os
 import re
 import urllib.parse
 import urllib.request
 import uuid
 from zoneinfo import ZoneInfo
 
-from paths import ROOT, load_config, load_settings, save_config
+from paths import ROOT, load_api_key, load_config, load_settings, save_config
 
 BASE = "https://sensecraft-hmi-api.seeed.cc"
 ENUMS = {
@@ -49,6 +48,10 @@ THEMES = {
 } | {"month-" + str(i).zfill(2) for i in range(1, 13)}
 
 
+def api_key():
+    return load_api_key()
+
+
 def save(name, v):
     p = ROOT / name
     p.write_text(json.dumps(v, ensure_ascii=False, indent=2))
@@ -60,7 +63,7 @@ def api(route, data=None, method=None):
         BASE + route,
         data=None if data is None else json.dumps(data).encode(),
         headers={
-            "api-key": os.environ["SENSECRAFT_API_KEY"],
+            "api-key": api_key(),
             "Content-Type": "application/json",
         },
         method=method,
@@ -88,7 +91,7 @@ def upload_preview(raw):
         BASE + "/api/v1/oss/file/upload",
         data=body,
         headers={
-            "api-key": os.environ["SENSECRAFT_API_KEY"],
+            "api-key": api_key(),
             "Content-Type": "multipart/form-data; boundary=" + b,
         },
     )
@@ -247,7 +250,7 @@ def main():
     if config["showBattery"]:
         config["batteryBinding"] = {
             "deviceId": settings["device_id"],
-            "apiKey": os.environ["SENSECRAFT_API_KEY"],
+            "apiKey": api_key(),
         }
     else:
         config.pop("batteryBinding", None)
@@ -277,7 +280,8 @@ def main():
                 "img_format": "png",
             },
         )
-        assert isinstance(raw, bytes)
+        if not isinstance(raw, bytes):
+            raise TypeError("SenseCraft preview did not return PNG data")
         (ROOT / "configured-preview.png").write_bytes(raw)
     if a.save:
         save("before-configure-page.json", page)
@@ -294,9 +298,11 @@ def main():
             "/api/v2/user/page/detail?"
             + urllib.parse.urlencode({"page_id": page["id"]})
         )
-        assert json.loads(after["data"]) == layout
+        if json.loads(after["data"]) != layout:
+            raise RuntimeError("Saved page did not read back exactly")
         save_config(config)
         save("candidate-private.json", layout)
+        save("persisted-private.json", layout)
         print("Configuration saved and read back")
     if a.deploy:
         d = next(

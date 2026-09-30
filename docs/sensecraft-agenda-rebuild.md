@@ -42,276 +42,105 @@ nomi e identificativi non sono riportati qui.
 
 ## Materiale necessario
 
-**Il clone contiene sorgenti e artwork**, sotto
-`templates/google-calendar-today/`. Le risorse dell’account e lo stato locale
-sono esclusi da Git: ripristinarli da un backup privato per ricreare la stessa
-installazione. Per un altro account partire dagli esempi senza credenziali.
-Questa guida non crea il backup privato.
+| Percorso | Ruolo |
+| --- | --- |
+| `templates/google-calendar-today/src/agenda.html` | HTML/CSS/JS autorevole e fixture development |
+| `templates/google-calendar-today/assets/` | 24 coppie light/dark, manifest SHA-256 e miniatura fittizia |
+| `templates/google-calendar-today/scripts/` | Helper API versionati |
+| `sensecraft.local.json` | Preferenze persistenti e mapping calendari; ignorato |
+| `sensecraft.connection.local.json` | Key, sessione Google, ID risorse; ignorato, permessi 0600 |
+| `.private/native-agenda/` | Candidati, cache, preview e backup rigenerabili |
 
-|Percorso|Ruolo nel ripristino|
-|---|---|
-|`templates/google-calendar-today/src/agenda.html`|Sorgente definitivo: CSS, JavaScript e fixture di sviluppo.|
-|`templates/google-calendar-today/scripts/build.py`|Manifest degli asset, compilazione production, upload con cache e layout privato/portabile.|
-|`templates/google-calendar-today/scripts/configure.py`|Configurazione una tantum, calendario/città, preview e salvataggio.|
-|`templates/google-calendar-today/scripts/persist.py`|Salva pagina e template esistenti; richiede entrambi gli ID; effettua refresh deploy.|
-|`templates/google-calendar-today/scripts/verify-live.py`|Readback dello snapshot e nuovo render; include una prova che richiede almeno dieci calendari nell’account.|
-|`templates/google-calendar-today/scripts/check.js`|Controlli semantici di sviluppo e production.|
-|`.private/native-agenda/config.json`|Impostazioni definitive e mappatura privata dei calendari.|
-|`.private/native-agenda/candidate-private.json`|Layout finale completo, inclusi metadati del canvas.|
-|`.private/native-agenda/candidate-portable.json`|Versione priva di sessione, calendari e binding batteria.|
-|`.private/native-agenda/agenda-upload.html`|Artefatto production finale; conservarlo anche come riferimento.|
-|`.private/native-agenda/uploads.json`|Cache `nomefile\|SHA-256` → URL media e hash.|
-|`.private/native-agenda/thumbnail-uploads.json`|Cache delle miniature.|
-|`.private/native-agenda/befana-long-titles.png`|Miniatura dimostrativa con eventi fittizi per il template riutilizzabile.|
-|`.private/native-agenda/build-report.json`, `final-account-audit.json`|Baseline di compilazione e verifiche precedenti.|
-|`templates/google-calendar-today/design-review/approved-originals/`|15 mockup approvati, lasciati immutati.|
-|`templates/google-calendar-today/design-review/monthly/`|12 sfondi mensili.|
-|`templates/google-calendar-today/design-review/manifest.json` e asset referenziati|Inventario sanificato: 34 immagini originali versionabili e una miniatura fittizia; un mockup con nomi reali resta privato.|
-|`.private/native-agenda/private-settings.json`|Bootstrap privato richiesto dagli helper.|
+Servono Python 3 con `zoneinfo`/database IANA, Node.js per i controlli,
+account autorizzato, Google collegato e dispositivo associato.
+La cancellazione di `.private/` non deve perdere preferenze o connessioni valide.
+Le vecchie configurazioni in quella directory sono backup storici.
 
-Conservare lo stato privato per mantenere rapporti e backup storici. Il vecchio
-bootstrap in `.private/feasibility/` è una copia storica; gli script versionati
-leggono `.private/native-agenda/private-settings.json`. Credenziali,
-configurazioni, miniature con eventi reali e risposte dell’account restano privati.
-
-Prerequisiti operativi:
-
-- Python 3 con `zoneinfo` e database dei fusi IANA; Node.js con i moduli standard
-  usati da `check.js`. La baseline locale è stata ispezionata con Python 3.14.7
-  e Node.js 26.10.0; non è una dichiarazione di versione minima.
-- `.env` escluso da Git, con `SENSECRAFT_API_KEY`; caricarlo nell’ambiente senza
-  stamparlo o abilitare shell tracing.
-- Account autorizzato, Google collegato tramite SenseCraft e dispositivo E1002
-  già associato. Gli helper non effettuano login, OAuth o associazione hardware.
-- `private-settings.json` con `page_id`, `template_id`, `device_id`,
-  `event_url` e `calendars`. Gli ID delle risorse sono interi. `event_url`
-  contiene il parametro `session_id`; `calendars` contiene record
-  `{id, name, initials, color}`. Usare i dati privati validi dell’installazione.
+Il loader migra il precedente JSON unificato. La key esplicitamente esportata
+in `SENSECRAFT_API_KEY` ha precedenza sulla connessione locale; `.env` è una
+sorgente legacy letta senza esecuzione shell. Non stampare i valori privati.
 
 ## Procedura di ripristino
 
-Eseguire dalla radice del progetto, quando il ripristino e le scritture
-all’account sono autorizzati. Per una richiesta di sola documentazione,
-leggere questi passaggi senza eseguirli.
+Dalla root, con autorizzazione alle scritture dell'account:
 
-### 1. Recuperare la baseline e verificare le risorse
-
-1. Leggere `AGENTS.md`; controllare branch, stato Git e modifiche esistenti.
-2. Recuperare i sorgenti e gli asset dal clone e ripristinare lo stato privato.
-   Verificare gli hash del manifest versionato; mantenere immutati gli originali
-   approvati. Le impronte sotto identificano la baseline storica prima della
-   riorganizzazione dei percorsi e formattazione degli script.
-3. Copiare `config.json` e `candidate-private.json` in backup privati distinti
-   **prima** della build. Saranno necessari per preservare la geometria finale.
-4. Verificare che `.env` e `.private/` risultino ignorati con `git check-ignore`;
-   `.private/` è esclusa dal `.gitignore` del progetto.
-5. Caricare la key e validare la configurazione:
+1. Leggere `AGENTS.md`, controllare Git e conservare modifiche estranee.
+2. Recuperare sorgenti e i due JSON persistenti da backup privato.
+   Verificare gli hash degli asset; non sovrascrivere una configurazione valida.
+3. Validare e leggere le risorse correnti usando la connessione privata.
+   Riconciliare i calendari selezionati con la lista Google fresca.
 
    ```sh
-   set -a
-   source .env
-   set +a
    python3 templates/google-calendar-today/scripts/configure.py --check-only
+   node templates/google-calendar-today/scripts/check.js
    ```
 
-6. Leggere via API pagina, dispositivo e template correnti usando gli ID del
-   bootstrap. Salvare le risposte complete privatamente, senza stamparle.
-   Confrontare la configurazione decodificata del fragment con il backup.
+4. Compilare production e controllare anche l'artefatto generato:
 
-**Completato quando:** sorgenti/asset sono disponibili, configurazione valida,
-risorse attuali identificate e stato precedente recuperabile. Se sessione o
-risorse non sono più valide, seguire il ramo [risorse nuove](#installazione-con-risorse-nuove).
+   ```sh
+   python3 templates/google-calendar-today/scripts/build.py --production
+   node templates/google-calendar-today/scripts/check.js --production
+   ```
 
-### 2. Compilare il documento production
+   La build carica PNG e HTML mancanti dalla cache, genera i candidati privato
+   e portabile e il rapporto. Effettua upload persistenti, ma non salva la pagina.
+   Senza `--production` conserva le fixture: non installarle sul dispositivo.
 
-```sh
-node templates/google-calendar-today/scripts/check.js
-python3 templates/google-calendar-today/scripts/build.py --production
-node templates/google-calendar-today/scripts/check.js --production
-```
+5. Il percorso page-only di `persist.py` fa backup della pagina fresca,
+   riconcilia il nuovo URL HTML conservando metadati/geometria dell'editor,
+   genera una preview, salva e legge nuovamente la pagina privata.
+   Non legge, ricrea o aggiorna template riutilizzabili.
 
-`build.py` effettua upload persistenti quando la cache non contiene lo stesso
-hash. Non salva la pagina, ma riscrive configurazione, candidati e rapporto
-locali. Legge comunque `private-settings.json`, anche quando `config.json`
-esiste. Senza `--production` il risultato contiene percorsi di simulazione:
-usare sempre l’opzione per un’installazione reale.
+   ```sh
+   python3 templates/google-calendar-today/scripts/persist.py --preview-only
+   # Inspect .private/native-agenda/production-before-save.png before saving.
+   python3 templates/google-calendar-today/scripts/persist.py --deploy
+   python3 templates/google-calendar-today/scripts/verify-live.py
+   ```
 
-La build:
+   Il `stageSize` dell'editor può differire dal gruppo dispositivo `800×480`.
+   La batteria è già nell'HTML: eliminare soltanto l'eventuale `native-battery`
+   legacy. Prima del salvataggio ispezionare la preview production: titoli,
+   orari, marker, contrasto dark, batteria trasparente e spazio verticale.
 
-1. Carica i PNG mensili e gli originali decorativi; salta `white` e `dark`.
-2. Inserisce gli URL nel placeholder `/* ASSET_MANIFEST */{}` del sorgente.
-3. Rimuove clock/eventi/meteo/batteria simulati, conservando gli helper runtime.
-4. Carica `agenda-upload.html` come `type=document`.
-5. Aggiorna il binding batteria privato dalla key nell’ambiente.
-6. Genera due layout: privato e portabile; verifica l’assenza dei valori privati
-   nel documento caricato e nel layout portabile.
+6. Confrontare pagina, assegnazione e snapshot contro `persisted-private.json`,
+   scritto soltanto dopo il readback esatto della pagina. Un refresh accettato non prova
+   lo schermo fisico. La verifica normale usa i calendari selezionati;
+   la prova su dieci calendari è opzionale (`--ten-calendars`).
 
-La baseline contiene **25 asset decorativi caricati**; il manifest complessivo
-preserva 35 immagini. Gli originali che contengono lettering da mockup sono
-ritagliati via CSS; non vengono modificati. L’eventuale `darkUrl` dedicato
-ha precedenza sul filtro CSS di inversione e rotazione della tinta.
-
-Estrarre il JavaScript dall’artefatto appena compilato per il controllo
-sintattico, evitando un vecchio `production-check.js`:
-
-```sh
-python3 - <<'PY'
-from pathlib import Path
-root = Path('.private/native-agenda')
-html = (root / 'agenda-upload.html').read_text()
-js = html.split('<script>', 1)[1].split('</script>', 1)[0]
-(root / 'production-check.js').write_text(js)
-PY
-node --check .private/native-agenda/production-check.js
-```
-
-**Completato quando:** i 51 controlli passano su ciascuna delle due versioni,
-JavaScript valido, `build-report.json` dichiara `production: true` e privacy
-verificata. In un ripristino con gli stessi URL media, confrontare anche l’hash
-del production finale. Nuovi URL comportano un hash diverso pur mantenendo
-lo stesso codice e artwork.
-
-### 3. Preservare il layout finale e ispezionare la preview
-
-La build rigenera un canvas canonico `800×480`. Il layout finale della
-baseline conserva invece `stageSize: {width: 1508, height: 834}` dell’editor,
-con gruppo dispositivo `800×480`. Sono due geometrie distinte.
-
-Per ripristinare la stessa installazione:
-
-1. Usare il backup finale del layout come base, conservandone tutti i metadati.
-2. Sostituire soltanto `htmlConfig.htmlUrl` del figlio `id: "native-agenda"`
-   con quello del candidato appena compilato, comprensivo del fragment privato.
-3. Lasciare un solo componente HTML nel gruppo; la batteria è già al suo interno.
-   Rimuovere l’eventuale vecchio figlio `native-battery`.
-4. Salvare il risultato in `candidate-private.json`. Applicare gli stessi
-   metadati non privati al candidato portabile, mantenendo il suo URL sanificato.
-5. Richiedere una preview del candidato production e ispezionarla **prima**
-   del salvataggio della pagina.
-
-Comando per la preview reale, senza stampare layout, URL privato o risposte:
-
-```sh
-python3 - <<'PY'
-import json, os, urllib.request
-from pathlib import Path
-root = Path('.private/native-agenda')
-layout = json.loads((root / 'candidate-private.json').read_text())
-payload = {'layout': layout, 'resolution': '800x480',
-           'dither': 3, 'img_format': 'png'}
-request = urllib.request.Request(
-    'https://sensecraft-hmi-api.seeed.cc/render/preview',
-    data=json.dumps(payload).encode(),
-    headers={'api-key': os.environ['SENSECRAFT_API_KEY'],
-             'Content-Type': 'application/json'})
-with urllib.request.urlopen(request, timeout=60) as response:
-    image = response.read()
-assert image.startswith(b'\x89PNG'), 'Preview non PNG: fermarsi e analizzare privatamente'
-(root / 'rebuild-preview.png').write_bytes(image)
-PY
-```
-
-Controllare titoli lunghi, orario fisso, orario di fine, marker allineati a
-destra, contrasto sullo sfondo, spazio verticale e batteria trasparente.
-Per confrontare modalità o date simulate, usare una copia privata di sviluppo;
-il candidato da installare deve sempre referenziare il production senza fixture.
-
-`configure.py --preview` usa l’URL della pagina attualmente salvata: prima del
-salvataggio può quindi mostrare il documento precedente. La preview diretta
-del candidato evita questa ambiguità.
-
-**Completato quando:** metadati preservati, URL production corretto in entrambi
-i candidati, nessun binding privato nel portabile e preview effettiva ispezionata.
-
-### 4. Salvare, distribuire e leggere lo stato risultante
-
-Con pagina e template esistenti, eseguire:
-
-```sh
-python3 templates/google-calendar-today/scripts/persist.py
-```
-
-L’helper legge e salva backup dello stato corrente, genera una preview reale,
-carica miniature, aggiorna pagina e template, confronta i readback e richiede
-il refresh del dispositivo. La pagina riceve la miniatura reale; il template
-riceve quella con dati fittizi. Il template portabile esclude `session_id`,
-calendari e `batteryBinding`, e imposta `showBattery: false`.
-
-`persist.py` legge tutti i template paginati prima della scrittura; il suo
-readback successivo cerca però nelle prime 100 voci. Se il target non è lì,
-paginare il readback prima di concludere che la scrittura è fallita.
-
-Se l’account ha almeno dieci calendari collegati:
-
-```sh
-python3 templates/google-calendar-today/scripts/verify-live.py
-```
-
-Per account con meno calendari, effettuare le stesse letture di verifica
-descritte sotto, separando la prova opzionale dei dieci calendari: l’helper
-attuale si arresta su quell’asserzione prima di verificare lo snapshot.
-
-**Completato quando:** pagina privata e portabile corrispondono ai candidati,
-deploy accettato, snapshot assegnato uguale alla pagina desiderata, nuova preview
-dello snapshot ispezionata e stato fisico riportato con il suo livello di prova.
+Se `.private/` viene rimossa, rigenerare da sorgenti/asset e dai due JSON;
+sono necessari nuovi upload quando la cache non è disponibile.
 
 ## Installazione con risorse nuove
 
-Gli helper sono strumenti di ripristino di risorse esistenti, non un bootstrap
-completo di un account vuoto. Usare questa sequenza se gli ID o la sessione del
-backup non sono più utilizzabili:
+Gli helper CLI ripristinano risorse esistenti. Il bootstrap grafico è nella
+[specifica di consegna](sensecraft-configurator-goal.md).
 
-1. Leggere `GET /api/v2/user/device/list`, identificare E1002 tramite `board.type`
-   e registrare privatamente ID e MAC correnti. Associare il dispositivo tramite
-   la procedura SenseCraft se non è ancora associato.
-2. Creare una pagina layout E1002 dal normale editor SenseCraft. Il percorso
-   `POST /api/v2/user/page` è noto, ma questi helper e le note attuali non fissano
-   un payload di creazione completo validato: usare il bootstrap nativo evita
-   di inventare un contratto. Tutta la costruzione successiva usa le API.
-3. Collegare Google dalla configurazione dati di SenseCraft, scegliere i
-   calendari e usare **Load Data**. Recuperare privatamente il `session_id`
-   autorizzato dal callback/configurazione salvata o dall’URL della sorgente
-   eventi. Non riutilizzare la sessione di un altro installatore.
-4. Copiare gli esempi in `templates/google-calendar-today/examples/` nello stato
-   privato `.private/native-agenda/`, rinominandoli `private-settings.json` e
-   `config.json`, poi sostituire i placeholder. Preparare il bootstrap con le
-   nuove risorse ed `event_url` valido.
-   Preparare `config.json` dai default del sorgente, con sessione e mappatura
-   privata. La key resta in `.env`; il binding viene costruito dall’helper.
-5. Compilare per ottenere i candidati. Inserire l’HTML nella nuova pagina via
-   API e fare readback prima di usare `configure.py`, che richiede un figlio
-   `native-agenda` già esistente nella pagina salvata.
-6. Rileggere i calendari e configurare le scelte con indici **della lista fresca**:
+1. Associare il dispositivo tramite SenseCraft, poi identificarlo tramite
+   `GET /api/v2/user/device/list`; il modello è in `board.type`.
+2. Creare la pagina privata nel percorso nativo finché il payload completo
+   di creazione non è validato; non inventare un contratto.
+3. Collegare Google via OAuth SenseCraft e ottenere la sessione autorizzata
+   dell'installatore. Non riutilizzare sessioni di altre persone.
+4. Preparare la configurazione senza sovrascrivere file esistenti:
 
    ```sh
-   python3 templates/google-calendar-today/scripts/configure.py --list-calendars
-   python3 templates/google-calendar-today/scripts/configure.py \
-     --calendar '1:AA:#D32F2F' --calendar '2:BB:#1565C0' \
-     --set language=it --set intensity=50 --preview
+   cp sensecraft.local.example.json sensecraft.local.json
+   cp sensecraft.connection.local.example.json sensecraft.connection.local.json
+   chmod 600 sensecraft.local.json sensecraft.connection.local.json
    ```
 
-   Gli indici e le iniziali sopra sono esempi: sostituirli con le scelte private
-   dell’installatore. Ripetere `--calendar` da una a dieci volte. L’opzione
-   sostituisce l’intera selezione. Per salvare, ripetere le stesse opzioni con
-   `--save`; per distribuire aggiungere `--deploy`, che richiede `--save`.
-7. Se serve un nuovo template riutilizzabile e la creazione è autorizzata,
-   seguire il payload in [Create payload proven by client source](sensecraft-hmi-api.md#create-payload-proven-by-client-source):
-   usare `candidate-portable.json` serializzato in `data`, `api_data` sanificato,
-   miniatura fittizia, modello E1002, risoluzione `800x480`, dither `3` e il nuovo
-   `record_page_id`. Registrare privatamente `result.id` come `template_id`.
-   La creazione può richiedere moderazione; non è necessaria per il dispositivo.
-8. Eseguire la procedura di ripristino con i nuovi ID. Se si desidera soltanto
-   la pagina privata, usare preview, pagina `PUT`, deploy e readback via API,
-   evitando `persist.py`, che aggiorna obbligatoriamente anche un template.
+   Compilare privatamente key, sessione, ID pagina/dispositivo e mapping.
+   Gli esempi non sono un account pronto. La sessione può scadere o essere revocata.
+5. Compilare/installare/verificare seguendo la procedura sopra.
 
-Importare un template dal marketplace non compila questo fragment né avvia
-automaticamente tutta la procedura OAuth/mappatura. Non esiste nella baseline
-un pannello nativo con le checkbox personalizzate: le impostazioni sono
-funzionanti tramite configurazione una tantum.
+Il template riutilizzabile è stato ritirato, conservando pagina privata,
+Google e assegnazione del dispositivo. Non serve per questo percorso.
+Il marketplace non completa automaticamente OAuth/mapping dell'HTML.
 
 ## Configurazione e comportamento
 
-Per la stessa installazione, **`config.json` finale è l’autorità**. Per una nuova
+Per la stessa installazione, **`sensecraft.local.json` contiene le preferenze autorevoli**. Per una nuova
 installazione, conservare il comportamento sotto e cambiare soltanto le scelte
 dell’utente e i binding privati.
 
@@ -383,11 +212,11 @@ contenere un errore applicativo. Le preview restituiscono bytes PNG.
 |Upload|`POST /api/v1/oss/file/upload`, multipart `file`, `type=image\|document\|thumbnail`; usare `result.file_url`.|
 |Calendari|`GET /api/v2/calendar/list?session_id=…`, con `api-key`; record in `result.calendarList`.|
 |Eventi runtime|`GET /api/v2/calendar/events`, query `session_id`, `calendar_ids` separati da virgola, `type=2`, `time_zone`; `result.events`. HTML usa `credentials: "omit"`, senza key account per questa lettura.|
-|Sole|`GET https://api.open-meteo.com/v1/forecast`, query `latitude`, `longitude`, `daily=sunrise,sunset`, `timezone`, `forecast_days=4`.|
+|Sole|`GET https://api.open-meteo.com/v1/forecast`, query `latitude`, `longitude`, `daily=sunrise,sunset`, `timezone`, `forecast_days=16`.|
 |Batteria runtime|`GET /api/v1/user/device/iot_data/{deviceId}`, header `api-key`, `credentials: "omit"`; `result.battery.level`.|
 |Preview|`POST /render/preview`, `{layout, resolution: "800x480", dither: 3, img_format: "png"}`.|
 |Pagina|`GET /api/v2/user/page/detail?page_id=…`; salvare con `PUT /api/v2/user/page`, `{id, data: "JSON serializzato", thumbnail}`; leggere di nuovo e confrontare JSON.|
-|Template esistente|`PUT /api/v2/user/template`; usare i campi preservati dall’helper, `data`/`api_data` stringhe JSON e `category_ids` interi; leggere tutta la lista paginata per verificare.|
+|Template riutilizzabile|Ritirato; non richiesto né aggiornato nel percorso privato.|
 |Deploy pagina|`POST /api/v2/user/device/deploy`, `{mode: "refresh", page_ids: [ID], mac_addresses: [MAC]}`.|
 |Assegnazione|`GET /api/v2/user/device/playlist?mac_address=…&type=all`; identificare la pagina tramite `source_page_id` oppure `id`.|
 |Snapshot|`GET /api/v2/user/page/detail?page_id={entry.id}&kind=snapshot` se l’entry è uno snapshot; confrontare `data`, risoluzione e dither con il candidato.|
@@ -424,7 +253,7 @@ non lo rende un deposito pubblico o permanente di credenziali.
 - [ ] Privacy verificata su documento caricato, template portabile e miniature.
 - [ ] Preview reale del production ispezionata, inclusi batteria dark,
   marker, titoli lunghi e righe disponibili.
-- [ ] Pagina e, se richiesto, template salvati e confrontati tramite readback.
+- [ ] Pagina privata salvata e confrontata tramite readback.
 - [ ] Refresh accettato; assegnazione e snapshot confrontati con la pagina.
 - [ ] Lettura successiva/render successivo verificati; intervallo e online
   riportati separatamente dalla consegna fisica.
@@ -440,26 +269,8 @@ Conservare questa distinzione nei resoconti del ripristino.
 
 ## Impronte della baseline
 
-SHA-256 della baseline privata precedente alla riorganizzazione del 30
-settembre 2026. Il sorgente HTML e gli artwork sono stati copiati immutati;
-gli script versionati hanno ora percorsi separati per sorgenti e stato privato
-e formattazione leggibile, quindi i loro hash differiscono. Queste impronte
-identificano i backup storici; per gli artwork correnti usare il manifest
-versionato. I file `.private/*.py` di compatibilità non sono la baseline.
-
-```text
-agenda.html
-af114122f905df61a36073313863c1a7d2e0e0fd90ef9a135b0d5b77840a4419
-agenda-upload.html
-1dee64e75f27d7643a1b75687cb4c1e4463bc4ae593e7f8845ef10d22365f487
-build.py
-e297b4e44d14c9ead3a5ab9734b5db25c8c6e8ce5efae65509b190e3bd813318
-configure.py
-2ddeea4b955590b2bc77a8bb5a6fe7c1074cda88866aa0642b2f6e74b8a23c33
-persist.py
-0d68da9c7e5ee99dad0634e4d1a436983ccfa46350a874e0d372d9d29498f7d8
-verify-live.py
-516842467056d44877c2935f7431c131ea16aff7e89ba893053704770dde3e17
-check.js
-f4559f1d34ed8fb14557574751ec6cefc5971b4aafb7e86117241becd5df9f1f
-```
+Per gli asset correnti usare `templates/google-calendar-today/assets/manifest.json`.
+Gli hash storici degli script e i mockup decisionali non sono un contratto
+operativo: i sorgenti versionati e i due JSON persistenti sono l'autorità.
+Le decorazioni attuali sono prive di testo, con `mockup_crop: false` e varianti
+`darkUrl`; il fallback di inversione CSS riguarda solo asset legacy senza dark.

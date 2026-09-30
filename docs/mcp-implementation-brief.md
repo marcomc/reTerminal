@@ -661,3 +661,33 @@ source/binding, preserve unrelated fields and inspect a device-resolution previe
 Root `stageSize` need not equal the device group's dimensions in editor records.
 Verify saved page and deployed snapshot after reconciliation; repeated concurrent
 changes require coordination with the editor rather than blind repeated writes.
+
+### Private-page lifecycle after template withdrawal: 2026-09-30
+
+The authorized withdrawal evidence in the API notes confirms private page,
+Google connection and device snapshot preservation in this installation.
+Make reusable-template identity optional in page authoring/deployment tools.
+A page-only operation must never recreate a withdrawn template implicitly.
+Treat successful mutations without `result` as success envelopes, then verify
+resources through readback. Do not infer deletion idempotency or generic cascade
+semantics; keep destructive actions separate and explicitly authorized.
+
+Durable local authoring preferences belong in ignored root `sensecraft.local.json`;
+connections/API key/session and resource IDs in ignored
+`sensecraft.connection.local.json`. `.private/` contains regenerable artifacts.
+A future MCP should reuse this configuration boundary, redact private fragments
+and distinguish local save, account-page save and device refresh.
+
+### Rendering verification consequences: 2026-09-30
+
+Local review found that a fixed three-day normalization horizon could hide the
+next returned event despite available screen space. The HTML consumer now sorts
+all non-expired selected events returned by SenseCraft; available row space is
+the presentation limit. Solar forecast coverage is 16 days; absent forecast
+entries are handled as unavailable rather than inventing times. This is a local
+rendering correction, not a new upstream date-range guarantee.
+
+Private-page persistence reconciles editor metadata into the new layout.
+Verification must compare against that persisted layout, not the build's
+canonical canvas. Operational privacy, production and readback checks must
+remain effective under optimized Python execution; use explicit exceptions.

@@ -24,23 +24,26 @@ templates/google-calendar-today/         sorgenti versionabili
 ├── assets/                             sfondi runtime, miniatura e inventario
 └── LICENSE                             MIT per il codice
 
-.private/native-agenda/                 stato locale escluso da Git
-├── config.json                         sessione e calendari dell’installatore
-├── private-settings.json               risorse private e bootstrap Google
+sensecraft.local.json                    preferenze persistenti; ignorato
+sensecraft.connection.local.json         key, sessione Google, risorse; ignorato
+
+.private/native-agenda/                 output rigenerabili esclusi da Git
 ├── agenda-upload.html                  artefatto generato
 ├── candidate-private.json              layout con binding privati
 ├── candidate-portable.json             export senza binding
 └── ...                                 cache, backup, rapporti e preview
 ```
 
-Gli script leggono la key da `SENSECRAFT_API_KEY`; non caricano `.env`
-automaticamente. Scrivono nello stato privato, anche se lanciati da un’altra
-directory. `SENSECRAFT_AGENDA_STATE_DIR` permette una directory alternativa
-privata esterna ai sorgenti: escluderla da Git se è dentro il repository.
+Gli helper risolvono i percorsi dalla root indipendentemente dalla directory
+corrente. Le preferenze sono in `sensecraft.local.json`; key, sessione e ID
+in `sensecraft.connection.local.json` (permessi 0600). Il loader migra il
+precedente formato unificato. Una key esplicitamente esportata ha precedenza;
+`.env` è compatibilità legacy, letta senza esecuzione shell.
 
-I vecchi entry point sotto `.private/native-agenda/` sono compatibilità locale;
-i file in `scripts/` sono l’implementazione autorevole. I vecchi backup e gli
-esperimenti API non sono sorgenti del template.
+`SENSECRAFT_AGENDA_CONFIG`, `SENSECRAFT_AGENDA_CONNECTION` e
+`SENSECRAFT_AGENDA_STATE_DIR` consentono altri percorsi privati esclusi da Git.
+Eliminare `.private/` non deve perdere preferenze o connessioni ancora valide.
+I vecchi entrypoint in quella directory restano compatibilità locale.
 
 ## Funzionalità e limiti
 
@@ -64,33 +67,21 @@ Eseguire dalla radice del repository. Servono Python 3 con `zoneinfo`, una key
 SenseCraft e risorse già create nell’account. Per i controlli semantici esistenti
 serve Node.js; gli script usano soltanto librerie standard.
 
-Per una nuova installazione locale:
+Per una nuova configurazione locale, senza sovrascrivere file esistenti:
 
 ```sh
-mkdir -p .private/native-agenda
-cp templates/google-calendar-today/examples/config.example.json \
-  .private/native-agenda/config.json
-cp templates/google-calendar-today/examples/private-settings.example.json \
-  .private/native-agenda/private-settings.json
-chmod 600 .private/native-agenda/config.json \
-  .private/native-agenda/private-settings.json
+cp sensecraft.local.example.json sensecraft.local.json
+cp sensecraft.connection.local.example.json sensecraft.connection.local.json
+chmod 600 sensecraft.local.json sensecraft.connection.local.json
 ```
 
-Non sovrascrivere la configurazione di un’installazione esistente. Sostituire
-i placeholder privatamente con sessione Google autorizzata, ID delle risorse
-e calendari dell’installatore. Gli esempi non costituiscono un account pronto.
-
-Caricare `.env` senza tracing o stampa:
-
-```sh
-set -a
-source .env
-set +a
-```
-
-La key va in `.env`, escluso da Git. Il binding batteria viene generato dallo
-script; non inserire la key nei sorgenti o negli esempi. La procedura completa
-per nuove risorse è nel [runbook](../../docs/sensecraft-agenda-rebuild.md).
+Impostare privatamente key, sessione Google, risorse e mapping dell'installatore.
+Gli esempi non effettuano OAuth o bootstrap. Il binding batteria viene costruito
+nel layout privato: non mettere credenziali nei sorgenti o negli esempi.
+La [guida di ricostruzione](../../docs/sensecraft-agenda-rebuild.md) descrive
+ripristino e nuove risorse; il
+[configuratore pianificato](../../docs/sensecraft-configurator-goal.md)
+è distinto dagli helper CLI attuali.
 
 ## Personalizzazione
 
@@ -130,24 +121,34 @@ python3 templates/google-calendar-today/scripts/build.py --production
 
 La build carica gli asset mancanti e l’HTML tramite API e genera i candidati
 nello stato privato. **Effettua upload persistenti**, ma non salva la pagina.
-Richiede anche il bootstrap privato; non è una build offline. Conservare
+Richiede la connessione privata; non è una build offline. Conservare
 configurazione e layout finale prima di eseguirla. Il canvas generato è
 `800×480`; per un ripristino preservare i metadati dell’editor come descritto
 nel runbook. Senza `--production` sono presenti le fixture di simulazione.
 
-Per installare su pagina e template già esistenti, dopo la preview:
+Per installare sulla pagina privata esistente, dopo la preview:
 
 ```sh
-python3 templates/google-calendar-today/scripts/persist.py
+python3 templates/google-calendar-today/scripts/persist.py --preview-only
+# Inspect .private/native-agenda/production-before-save.png before saving.
+python3 templates/google-calendar-today/scripts/persist.py --deploy
 python3 templates/google-calendar-today/scripts/verify-live.py
 ```
 
-`persist.py` salva pagina e template, carica miniature e richiede il refresh;
-non è un comando di sola lettura. `verify-live.py` legge stato e snapshot,
-richiede un nuovo render e scrive rapporti privati. La verifica opzionale dei
-dieci calendari richiede almeno dieci calendari collegati: con meno calendari,
-seguire le letture del runbook. Il clone non include login, OAuth, associazione
-hardware o creazione completa delle risorse per un account vuoto.
+`persist.py` aggiorna soltanto la pagina privata, preserva i metadati dell'editor,
+carica la miniatura reale, effettua readback; `--deploy` richiede il refresh. `--preview-only`
+consente di ispezionare il candidato prima del salvataggio.
+Il template riutilizzabile ritirato non è richiesto o ricreato.
+`verify-live.py` controlla selezione e snapshot contro `persisted-private.json`,
+che conserva il layout riconciliato dopo il readback esatto; la prova su dieci calendari
+è opzionale con `--ten-calendars`. Il percorso CLI richiede risorse esistenti;
+non completa login, OAuth o bootstrap di un account vuoto.
+
+Per i test locali:
+
+```sh
+python3 -m unittest discover -s templates/google-calendar-today/tests
+```
 
 I controlli semantici esistenti sono in `scripts/check.js`; con `--production`
 leggono l’artefatto compilato nello stato privato. Non richiedono accesso API.
@@ -155,15 +156,11 @@ Non confondere readback/deploy accettato con conferma fisica del display.
 
 ## Asset e licenza
 
-`assets/monthly/` contiene i dodici sfondi mensili; `assets/themes/` contiene
-le tredici decorazioni tematiche, comprese le festività e Halloween dark.
-`assets/thumbnail.png` è la miniatura con eventi fittizi usata dal template
-riutilizzabile. `assets/manifest.json` registra i loro hash. Gli originali
-tematici usati dal runtime hanno lettering da mockup: il CSS lo ritaglia;
-queste immagini restano necessarie alla build e non sono materiale di review.
-Bianco/dark sono superfici CSS e non richiedono immagini separate.
-Confronti, pannelli concettuali, prompt e prove decisionali sono stati rimossi
-dal progetto. Gli asset runtime sono rimasti byte per byte invariati.
+Gli sfondi sono decorazioni prive di lettering/UI: 12 temi e 12 mesi,
+ciascuno con variante dark. Il manifest registra hash e associazioni;
+`mockup_crop: false` usa tutto lo sfondo senza ritaglio. La miniatura con
+esempi fittizi è separata e non viene usata come sfondo.
+Bianco/dark base sono superfici CSS.
 
 Il codice HTML, JavaScript e Python è sotto [MIT](LICENSE). Documentazione,
 mockup e artwork originali del progetto sono sotto [CC BY 4.0](../../LICENSE).

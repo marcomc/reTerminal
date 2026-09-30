@@ -1,15 +1,15 @@
 """Verify later renders, ten-calendar reads and the deployed snapshot."""
 
+import argparse
 import hashlib
 import json
-import os
 import urllib.parse
 import urllib.request
 
-from paths import ROOT, load_config, load_settings
+from paths import ROOT, load_api_key, load_config, load_settings
 
 BASE = "https://sensecraft-hmi-api.seeed.cc"
-KEY = os.environ["SENSECRAFT_API_KEY"]
+KEY = load_api_key()
 
 
 def save(name, data):
@@ -22,32 +22,60 @@ def get(route):
     r = urllib.request.Request(BASE + route, headers={"api-key": KEY})
     with urllib.request.urlopen(r, timeout=45) as f:
         v = json.load(f)
-    assert v["code"] == 200
+    if v.get("code") != 200:
+        raise RuntimeError("SenseCraft API request failed")
     return v
 
 
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument(
+    "--ten-calendars", action="store_true", help="also verify a ten-calendar API read"
+)
+arguments = parser.parse_args()
 cfg = load_config()
 settings = load_settings()
 cal = get(
     "/api/v2/calendar/list?" + urllib.parse.urlencode({"session_id": cfg["session_id"]})
 )["result"]["calendarList"]
-assert all(c["id"] in {r["id"] for r in cal} for c in cfg["calendars"])
-selection = [c["id"] for c in cal[:10]]
-assert len(set(selection)) == 10
-u = "/api/v2/calendar/events?" + urllib.parse.urlencode(
-    {
-        "session_id": cfg["session_id"],
-        "calendar_ids": ",".join(selection),
-        "type": 2,
-        "time_zone": cfg["timezone"],
-    }
-)
-events = get(u)["result"]["events"]
-assert all(e["calendarId"] in selection for e in events)
-print(
-    "Ten-calendar API read verified; selected-calendar reconciliation passed",
-    flush=True,
-)
+if not all(c["id"] in {r["id"] for r in cal} for c in cfg["calendars"]):
+    raise ValueError("Configured calendar is absent from the connected Google list")
+selected = [calendar["id"] for calendar in cfg["calendars"]]
+if not selected:
+    raise ValueError("At least one configured calendar is required")
+configured_events = get(
+    "/api/v2/calendar/events?"
+    + urllib.parse.urlencode(
+        {
+            "session_id": cfg["session_id"],
+            "calendar_ids": ",".join(selected),
+            "type": 2,
+            "time_zone": cfg["timezone"],
+        }
+    )
+)["result"]["events"]
+if not all(event["calendarId"] in selected for event in configured_events):
+    raise ValueError("Configured calendar query returned an unexpected calendar")
+print("Configured-calendar event read verified", flush=True)
+ten_calendar_events = []
+if arguments.ten_calendars:
+    ten_selection = [c["id"] for c in cal[:10]]
+    if len(set(ten_selection)) != 10:
+        raise ValueError(
+            "Connected Google list does not contain ten distinct calendars"
+        )
+    u = "/api/v2/calendar/events?" + urllib.parse.urlencode(
+        {
+            "session_id": cfg["session_id"],
+            "calendar_ids": ",".join(ten_selection),
+            "type": 2,
+            "time_zone": cfg["timezone"],
+        }
+    )
+    ten_calendar_events = get(u)["result"]["events"]
+    if not all(event["calendarId"] in ten_selection for event in ten_calendar_events):
+        raise ValueError("Ten-calendar query returned an unexpected calendar")
+    print("Ten-calendar API read verified", flush=True)
+print("Configured-calendar reconciliation passed", flush=True)
 d = next(
     x
     for x in get("/api/v2/user/device/list")["result"]
@@ -64,15 +92,22 @@ pages = [
     for p in a["result"]["pages"]
     if p.get("source_page_id") == settings["page_id"] or p["id"] == settings["page_id"]
 ]
-assert len(pages) == 1
+if len(pages) != 1:
+    raise ValueError("Expected exactly one deployed private page")
 p = pages[0]
 snapshot = get(
     "/api/v2/user/page/detail?"
     + urllib.parse.urlencode({"page_id": p["id"], "kind": p.get("kind", "layout")})
 )["result"]
 save("verified-snapshot.json", snapshot)
-expected = json.loads((ROOT / "candidate-private.json").read_text())
-assert json.loads(snapshot["data"]) == expected
+expectation = ROOT / "persisted-private.json"
+if not expectation.exists():
+    raise ValueError(
+        "Missing persisted expectation; save the private page before verifying"
+    )
+expected = json.loads(expectation.read_text())
+if json.loads(snapshot["data"]) != expected:
+    raise RuntimeError("Deployed snapshot does not match the persisted private page")
 r = urllib.request.Request(
     BASE + "/render/preview",
     data=json.dumps(
@@ -87,14 +122,16 @@ r = urllib.request.Request(
 )
 with urllib.request.urlopen(r, timeout=60) as f:
     raw = f.read()
-assert raw.startswith(b"\x89PNG")
+if not raw.startswith(b"\x89PNG"):
+    raise RuntimeError("Snapshot preview did not return PNG data")
 (ROOT / "verified-snapshot-preview.png").write_bytes(raw)
 # The API's device_image is service-provided evidence; do not call it a physical screenshot.
 url = d.get("device_image", "")
 imageMeta = {"present": bool(url)}
 if url:
     host = urllib.parse.urlsplit(url).hostname
-    assert host == "sensecraft-hmi-api.seeed.cc"
+    if host != "sensecraft-hmi-api.seeed.cc":
+        raise ValueError("Service device image is not hosted by SenseCraft")
     r = urllib.request.Request(url, headers={"api-key": KEY})
     with urllib.request.urlopen(r, timeout=45) as f:
         media = f.read()
@@ -112,10 +149,13 @@ if url:
 save(
     "live-verification-report.json",
     {
-        "ten_calendar_read_code": 200,
-        "ten_calendar_event_count": len(events),
-        "ten_calendar_returned_subset": True,
+        "ten_calendar_read": arguments.ten_calendars,
+        "ten_calendar_event_count": (
+            len(ten_calendar_events) if arguments.ten_calendars else None
+        ),
+        "ten_calendar_returned_subset": arguments.ten_calendars,
         "configured_calendars_reconciled": True,
+        "configured_calendar_event_count": len(configured_events),
         "snapshot_exact_layout": True,
         "device_online": d.get("online_status") == 1,
         "device_last_seen": d.get("last_seen"),

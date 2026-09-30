@@ -10,6 +10,8 @@ it does not contain an MCP server implementation.
 - [MCP implementation brief](docs/mcp-implementation-brief.md)
 - [Agenda rebuild runbook (Italian)](docs/sensecraft-agenda-rebuild.md)
 - [Private publication workflow and diagram](docs/sensecraft-private-publication.md)
+- [Configurator delivery specification and compact Goal](docs/sensecraft-configurator-goal.md)
+- [Private agenda consolidation verification](docs/sensecraft-consolidation-qa.md)
 - [Template sources (Italian)](templates/README.md)
 - [TODO](TODO.md)
 - [Changelog](CHANGELOG.md)
@@ -20,8 +22,9 @@ it does not contain an MCP server implementation.
 
 Reusable code and runtime artwork are versionable under
 `templates/google-calendar-today/`. Editable installation settings live in
-ignored `sensecraft.local.json` at the project root; the API key is in ignored
-`.env`. Generated layouts, caches and API captures remain in ignored `.private/`.
+ignored `sensecraft.local.json` at the project root; API key, Google session
+and resource IDs are in ignored `sensecraft.connection.local.json`. `.env` is
+a legacy migration source. Generated layouts, caches and API captures remain in ignored `.private/`.
 The template's settings are supported through an API helper; its graphical
 preferences panel remains a design proposal.
 

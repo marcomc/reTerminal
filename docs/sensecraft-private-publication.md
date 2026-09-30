@@ -25,16 +25,17 @@ flowchart TD
     subgraph PC["On the computer"]
         SRC["Template source<br/>src/agenda.html"]
         ART["Backgrounds<br/>assets/"]
-        ENV[".env<br/>API key; ignored by Git"]
+        ENV["sensecraft.connection.local.json<br/>API key, Google session and resource IDs<br/>Project root; ignored by Git"]
         LOCAL["sensecraft.local.json<br/>Project root; ignored by Git"]
-        CFG["agenda section<br/>Preferences, Google session and calendars"]
+        CFG["agenda section<br/>Preferences and calendar mapping"]
         IDS["resources section<br/>Page and device IDs"]
         BUILD["Production build<br/>Remove simulation fixtures<br/>Insert background URLs"]
         HTML["Generated HTML<br/>.private/native-agenda/agenda-upload.html"]
         LAYOUT["Generated private layout<br/>.private/native-agenda/candidate-private.json"]
 
         LOCAL --> CFG
-        LOCAL --> IDS
+        ENV --> IDS
+        ENV -->|"Google session"| LAYOUT
         SRC --> BUILD
         ART --> BUILD
         BUILD --> HTML
@@ -77,47 +78,41 @@ flowchart TD
 
 ## Local configuration
 
-There is one editable installation file, `sensecraft.local.json`, in the
-project root. It is excluded by the repository `.gitignore` and has owner-only
-permissions. It replaces the previous separate `config.json` and
-`private-settings.json` as the authoritative input to all canonical helpers.
+Two durable files in the project root are excluded by Git and use owner-only
+permissions. Generated state is disposable.
 
-|Location|Purpose|
-|---|---|
-|`sensecraft.local.json` → `agenda`|What to display: chosen calendars, initials/colors, language, city/timezone, backgrounds, intensity and indicators. Includes the authorized Google Calendar session.|
-|`sensecraft.local.json` → `resources`|Where to save/deploy: existing workspace `page_id` and `device_id`. `template_id` is a legacy optional target for reusable-template operations, not required by page-only configuration.|
-|`.env`|Account `SENSECRAFT_API_KEY`; load into the environment without printing it.|
-|`.private/native-agenda/`|Generated HTML/layouts, drafts, cache, previews, readbacks and recovery backups. This directory is not the active configuration location.|
-|`sensecraft.local.example.json`|Versionable setup example with placeholders and no account records.|
+| Location | Purpose |
+| --- | --- |
+| `sensecraft.local.json` → `agenda` | Preferences, calendar mapping, colors, language, location, themes and indicators |
+| `sensecraft.connection.local.json` | API key, authorized Google session and `resources` page/device IDs |
+| `.env` | Legacy API-key migration source; explicit environment override remains supported |
+| `.private/native-agenda/` | Regenerable HTML/layouts, drafts, caches, previews and private backups |
+| Root `*.example.json` files | Public-safe configuration examples |
 
-The previous bootstrap duplicated calendar choices and encoded the Google
-session in an event URL. The unified file keeps those values in `agenda` only;
-helpers construct API requests from them. Historical private files may remain
-as recovery copies but are not read as a fallback.
-
-Start a new local setup from the repository root:
+The loader migrates the previous combined root configuration without losing
+preferences or valid connections. Do not overwrite an existing installation.
+For a new configuration:
 
 ```sh
 cp sensecraft.local.example.json sensecraft.local.json
-chmod 600 sensecraft.local.json
+cp sensecraft.connection.local.example.json sensecraft.connection.local.json
+chmod 600 sensecraft.local.json sensecraft.connection.local.json
 ```
 
-Do not overwrite an existing installation. Populate resource IDs, Google session
-and calendar choices privately using the installer's own account. The example
-does not perform Google authorization or create SenseCraft resources.
+Populate the installer's own connection and selection privately. These examples
+do not perform OAuth or create resources. Deleting `.private/` must not require
+recreating valid preferences or authentication; expired/revoked sessions still
+require reconnection.
 
-Helpers resolve configuration independently of the current working directory.
-`SENSECRAFT_AGENDA_CONFIG` can select another private configuration file;
-`SENSECRAFT_AGENDA_STATE_DIR` can select another generated-state directory.
-Keep any alternative locations excluded from version control.
+Helpers resolve paths independently of the working directory. Use
+`SENSECRAFT_AGENDA_CONFIG`, `SENSECRAFT_AGENDA_CONNECTION` or
+`SENSECRAFT_AGENDA_STATE_DIR` only for other excluded private locations.
+An explicit `SENSECRAFT_API_KEY` environment value takes precedence over the
+connection file; `.env` is a legacy fallback parsed without shell execution.
 
-The battery key is not stored in the root JSON: helpers supply it from the
-environment when constructing the private layout. The resulting private HTML
-URL fragment contains Google and, when enabled, battery access bindings.
-Those values are transmitted in the account's private page configuration;
-they are not embedded in the uploaded HTML source. Generated layouts and
-account preview images therefore remain private even though the source is
-versionable.
+Google and optional battery bindings travel in the private layout fragment.
+They are not embedded in the uploaded HTML source. Account layouts and real
+calendar previews remain private; never put their fragments in tracked files.
 
 ## Uploaded outputs
 
@@ -128,8 +123,8 @@ versionable.
 |Private layout JSON|Serialized into the page API's `data` field; it is not uploaded as an independent file. Includes the uploaded HTML URL and private configuration fragment.|
 |Real page preview PNG|Rendered through `POST /render/preview`, uploaded as `type=thumbnail`; the page stores the returned thumbnail URL.|
 
-There is no ZIP upload of the project. Python scripts, `.env`, the root local
-JSON, caches and backup files are not uploaded as files. Required configuration
+There is no ZIP upload of the project. Python scripts, `.env`, the root configuration
+JSON files, caches and backup files are not uploaded as files. Required configuration
 values are included in the private page payload.
 
 ## Configuration changes and source changes
@@ -137,9 +132,6 @@ values are included in the private page payload.
 For preference changes on the existing installed page:
 
 ```sh
-set -a
-source .env
-set +a
 python3 templates/google-calendar-today/scripts/configure.py \
   --set backgroundMode=manual --set theme=floral --set intensity=40 --preview
 ```
@@ -152,11 +144,10 @@ and is not automatically promoted.
 For HTML or background changes:
 
 1. Run `build.py --production`; it uploads changed assets and generates layouts.
-2. Reconcile the new HTML URL into the existing page layout while preserving
-   editor metadata. The build's canonical canvas is not a substitute for all
-   existing page metadata.
-3. Render and inspect the candidate, then save the private page via API.
-4. Deploy a page refresh and compare saved layout with the assigned snapshot.
+2. Use `persist.py --preview-only` to inspect the candidate, then
+   `persist.py --deploy` to reconcile the new HTML URL into the fresh page layout,
+   preserving editor metadata, render it and save the private page.
+3. Refresh the device and compare the assigned snapshot with the saved page.
 
 See [the rebuild runbook](sensecraft-agenda-rebuild.md) for the detailed
 restoration sequence and [API field notes](sensecraft-hmi-api.md) for request
@@ -167,9 +158,8 @@ contracts and evidence limits.
 - `build.py` uploads media but does not save the account page or deploy it.
 - `configure.py` changes preferences in the HTML URL already saved on the page;
   it does not install a newly compiled document automatically.
-- The legacy `persist.py` also updates a reusable template and requires its
-  existing ID. Do not use it for a page-only installation after that template
-  has been removed; a dedicated page-only persistence path remains a TODO.
+- `persist.py` targets only the private page; no reusable template is required
+  or recreated. The CLI restoration path still requires an existing page.
 - The graphical preferences panel remains unimplemented. The configuration
   contract is supported by the API helper.
 - Snapshot equality and deployment acceptance are service-side evidence;

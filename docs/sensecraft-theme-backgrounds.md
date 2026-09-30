@@ -60,3 +60,11 @@ git diff --check
 Controllare inoltre sintassi Python e JavaScript, corrispondenza degli hash,
 dimensioni delle coppie e assenza di residui tramite ispezione visiva.
 Nessun test o comando API è necessario per questi controlli locali.
+
+## Stato QA: 2026-09-30
+
+Controllati gli hash delle 48 decorazioni e le dimensioni delle 24 coppie.
+Ispezionate le tavole dark dei temi e dei mesi e la tavole light dei temi e dei mesi:
+nessun lettering/evento/UI osservato, decorazioni mantenute ai bordi.
+Questo è controllo locale degli asset; preview del renderer e deploy restano
+prove distinte. I mensili light conservano gli originali versionati.

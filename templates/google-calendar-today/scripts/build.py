@@ -2,16 +2,22 @@
 
 import hashlib
 import json
-import os
 import sys
 import urllib.parse
 import urllib.request
 import uuid
 
-from paths import ARTWORK, ROOT, SOURCE, load_config, load_settings, save_config
+from paths import (
+    ARTWORK,
+    ROOT,
+    SOURCE,
+    load_api_key,
+    load_config,
+    load_settings,
+)
 
 BASE = "https://sensecraft-hmi-api.seeed.cc"
-KEY = os.environ["SENSECRAFT_API_KEY"]
+KEY = load_api_key()
 
 
 def save(name, data):
@@ -40,7 +46,8 @@ def upload(p, kind):
     )
     with urllib.request.urlopen(r, timeout=55) as f:
         v = json.load(f)
-    assert v["code"] == 200
+    if v.get("code") != 200:
+        raise RuntimeError("SenseCraft asset upload failed")
     return v["result"]["file_url"]
 
 
@@ -108,7 +115,23 @@ if "--production" in sys.argv:
     html = html.replace(
         "const b=testing?Promise.resolve(78):readBattery();", "const b=readBattery();"
     )
-    assert "testing" not in html and "syntheticEvents" not in html
+    if "testing" in html or "syntheticEvents" in html:
+        raise ValueError("Production document contains test-only code")
+settings = load_settings()
+config = load_config()
+if not 1 <= len(config["calendars"]) <= 10:
+    raise ValueError("Private build requires 1–10 calendars")
+if len({calendar["id"] for calendar in config["calendars"]}) != len(
+    config["calendars"]
+):
+    raise ValueError("Private build requires distinct calendar IDs")
+if not isinstance(config["intensity"], int) or not 0 <= config["intensity"] <= 100:
+    raise ValueError("Private build requires intensity 0–100")
+forbidden = [KEY, config.get("session_id", "")]
+for calendar in config["calendars"]:
+    forbidden.extend([calendar.get("id", ""), calendar.get("name", "")])
+if any(secret and secret in html for secret in forbidden):
+    raise ValueError("Compiled source contains private configuration")
 compiled = ROOT / "agenda-upload.html"
 compiled.write_text(html)
 digest = hashlib.sha256(compiled.read_bytes()).hexdigest()
@@ -117,22 +140,24 @@ if k not in cache:
     cache[k] = {"url": upload(compiled, "document"), "sha256": digest}
     save("uploads.json", cache)
     print("Uploaded native agenda document", flush=True)
-settings = load_settings()
-config = load_config()
-assert 1 <= len(config["calendars"]) <= 10
-assert len({c["id"] for c in config["calendars"]}) == len(config["calendars"])
-assert isinstance(config["intensity"], int) and 0 <= config["intensity"] <= 100
+private_config = dict(config)
 if config["showBattery"]:
-    config["batteryBinding"] = {"deviceId": settings["device_id"], "apiKey": KEY}
+    private_config["batteryBinding"] = {
+        "deviceId": settings["device_id"],
+        "apiKey": KEY,
+    }
 else:
-    config.pop("batteryBinding", None)
-save_config(config)
+    private_config.pop("batteryBinding", None)
 base = cache[k]["url"]
 privateUrl = (
     base
     + "#"
     + urllib.parse.urlencode(
-        {"config": json.dumps(config, separators=(",", ":"), ensure_ascii=False)}
+        {
+            "config": json.dumps(
+                private_config, separators=(",", ":"), ensure_ascii=False
+            )
+        }
     )
 )
 main = {
@@ -165,7 +190,7 @@ layout = {
 save("candidate-private.json", layout)
 publicConfig = {
     k: v
-    for k, v in config.items()
+    for k, v in private_config.items()
     if k not in ["session_id", "calendars", "batteryBinding"]
 }
 publicConfig["showBattery"] = False
@@ -191,12 +216,12 @@ save("candidate-portable.json", portable)
 # Assert private values are absent from both the portable export and uploaded source.
 encoded = json.dumps(portable, ensure_ascii=False) + compiled.read_text()
 for secret in (
-    [KEY, config["session_id"]]
-    + [c["id"] for c in config["calendars"]]
-    + [c["name"] for c in config["calendars"]]
+    [KEY, private_config["session_id"]]
+    + [calendar["id"] for calendar in private_config["calendars"]]
+    + [calendar["name"] for calendar in private_config["calendars"]]
 ):
-    if secret:
-        assert secret not in encoded
+    if secret and secret in encoded:
+        raise ValueError("Portable candidate contains private configuration")
 save(
     "build-report.json",
     {
