@@ -6,6 +6,7 @@ Research notes for a future MCP server that can operate a SenseCraft HMI account
 
 - [API field notes](docs/sensecraft-hmi-api.md)
 - [MCP implementation brief](docs/mcp-implementation-brief.md)
+- [Agenda rebuild runbook (Italian)](docs/sensecraft-agenda-rebuild.md)
 - [License](LICENSE)
 
 ## Evidence scope
