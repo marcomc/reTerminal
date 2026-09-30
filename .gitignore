@@ -4,6 +4,7 @@
 !.env.example
 /sensecraft.local.json
 /sensecraft.connection.local.json
+/*.local.json.*.lock
 /.sensecraft.connection.local.*.tmp
 /.sensecraft.local.*.tmp
 

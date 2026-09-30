@@ -62,6 +62,12 @@ sorgente legacy letta senza esecuzione shell. Non stampare i valori privati.
 
 ## Procedura di ripristino
 
+Il percorso grafico consigliato legge i due JSON persistenti, genera una preview
+production e applica **Salva e pubblica** con readback di pagina/assegnazione e
+snapshot. Produce anche `agenda-upload.html` e `persisted-private.json`, così
+`verify-live.py` può verificare lo stesso layout riconciliato. Il seguente percorso
+CLI resta disponibile; non eseguirlo contemporaneamente al configuratore.
+
 Dalla root, con autorizzazione alle scritture dell'account:
 
 1. Leggere `AGENTS.md`, controllare Git e conservare modifiche estranee.
@@ -109,12 +115,25 @@ Dalla root, con autorizzazione alle scritture dell'account:
    la prova su dieci calendari è opzionale (`--ten-calendars`).
 
 Se `.private/` viene rimossa, rigenerare da sorgenti/asset e dai due JSON;
-sono necessari nuovi upload quando la cache non è disponibile.
+il configuratore riusa la cache duratura della connessione. Gli helper CLI
+legacy possono richiedere nuovi upload se la loro cache rigenerabile manca.
 
 ## Installazione con risorse nuove
 
-Gli helper CLI ripristinano risorse esistenti. Il bootstrap grafico è nella
-[specifica di consegna](sensecraft-configurator-goal.md).
+Usare il [configuratore locale](../templates/google-calendar-today/configurator/README.md)
+per setup e nuove installazioni:
+
+```sh
+python3 templates/google-calendar-today/configurator
+```
+
+La key viene validata e salvata nella connessione locale. Il pannello riusa Google
+oppure guida nell'OAuth nativo e nell'importazione della connessione dalla pagina
+privata salvata. Consente la scelta di calendari/dispositivo e crea la pagina
+privata alla conferma **Salva e pubblica**; non dipende da template riutilizzabili.
+La creazione `{pages: [...]}` è derivata dal client e coperta da fixture; lo stato
+della prova live è nelle API notes. Il ritorno OAuth completo al loopback resta
+una verifica distinta. Gli helper sotto restano il percorso manuale avanzato.
 
 1. Associare il dispositivo tramite SenseCraft, poi identificarlo tramite
    `GET /api/v2/user/device/list`; il modello è in `board.type`.
@@ -180,7 +199,8 @@ ripetere le opzioni con `--save` o promuovere esplicitamente il file privatament
   stesso spazio orizzontale dell’orologio (88 px).
 - Batteria: lettura live, fondo trasparente, testo/icona con colore del tema
   e sottile contorno; `0%` valido, valore assente/non valido `—`.
-- Eventi: oggi e fino a tre date successive; cancellati esclusi. Conservare
+- Eventi: oggi e date successive restituite dall’API, ammesse finché lo spazio
+  consente righe complete; cancellati esclusi. Conservare
   eventi iniziati ma non terminati; rimuoverli quando `end.dateTime <= now`.
   Gli eventi notturni ancora attivi vengono raggruppati sotto oggi. Se l’ora
   di fine manca, il fallback di scadenza è l’inizio; timestamp invalidi esclusi.

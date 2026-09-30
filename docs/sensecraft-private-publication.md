@@ -23,6 +23,16 @@ flowchart TD
     accDescr: Local sources and ignored configuration produce uploaded media and a private account page, which SenseCraft renders for the device.
 
     subgraph PC["On the computer"]
+        APP["Local Python configurator<br/>Open default browser; 127.0.0.1 only"]
+        FORM["HTML configuration panel<br/>Connections, calendars and preferences"]
+        SAVE["Save locally<br/>No remote publication"]
+        CONFIRM["Save and publish confirmation<br/>Private page only"]
+        APP --> FORM
+        FORM -->|"Local save"| SAVE
+        SAVE --> LOCAL
+        FORM -->|"Publish"| CONFIRM
+        CONFIRM --> BUILD
+        CONFIRM --> LAYOUT
         SRC["Template source<br/>src/agenda.html"]
         ART["Backgrounds<br/>assets/"]
         ENV["sensecraft.connection.local.json<br/>API key, Google session and resource IDs<br/>Project root; ignored by Git"]
@@ -84,7 +94,7 @@ permissions. Generated state is disposable.
 | Location | Purpose |
 | --- | --- |
 | `sensecraft.local.json` → `agenda` | Preferences, calendar mapping, colors, language, location, themes and indicators |
-| `sensecraft.connection.local.json` | API key, authorized Google session and `resources` page/device IDs |
+| `sensecraft.connection.local.json` | API key, authorized Google session, page/device IDs and durable publication/upload recovery |
 | `.env` | Legacy API-key migration source; explicit environment override remains supported |
 | `.private/native-agenda/` | Regenerable HTML/layouts, drafts, caches, previews and private backups |
 | Root `*.example.json` files | Public-safe configuration examples |
@@ -129,6 +139,19 @@ values are included in the private page payload.
 
 ## Configuration changes and source changes
 
+The preferred interface is the [local configurator](../templates/google-calendar-today/configurator/README.md):
+
+```sh
+python3 templates/google-calendar-today/configurator
+```
+
+Choose preferences in the panel. Preview renders the unsaved form without
+changing the page; Save writes the local configuration; Save and publish
+requires confirmation, then saves locally and publishes privately. It uploads
+changed source/artwork, creates a page when needed and verifies deployment.
+Durable cache/journal/last-success metadata belongs in the connection file;
+`.private/` remains disposable. Advanced CLI commands follow.
+
 For preference changes on the existing installed page:
 
 ```sh
@@ -160,7 +183,7 @@ contracts and evidence limits.
   it does not install a newly compiled document automatically.
 - `persist.py` targets only the private page; no reusable template is required
   or recreated. The CLI restoration path still requires an existing page.
-- The graphical preferences panel remains unimplemented. The configuration
-  contract is supported by the API helper.
+- The local graphical configurator supports setup, preferences, native preview
+  and private publication. Native SenseCraft inspector controls remain separate.
 - Snapshot equality and deployment acceptance are service-side evidence;
   they do not independently prove that the physical screen has refreshed.

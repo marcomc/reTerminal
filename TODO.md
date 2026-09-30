@@ -4,12 +4,15 @@ Attività aperte; non sono funzionalità già implementate.
 
 ## Google Calendar Today
 
-- [ ] Pannello grafico per calendari, colori, temi e indicatori. Verificare
-  la specifica `docs/sensecraft-configurator-goal.md`: applicazione Python
-  locale, nessun servizio ospitato permanente.
-- [ ] Procedura di installazione per un nuovo utente: Google OAuth nativo,
-  selezione calendari e configurazione privata del componente HTML. Il
-  marketplace non completa automaticamente questa sequenza.
+- [x] Pannello Python locale con tutte le preferenze, preview nativa e pubblicazione
+  privata confermata; configurazione duratura e recupero dei tentativi interrotti.
+- [x] Setup key e riuso/importazione Google nativa senza modifica manuale dei JSON.
+- [ ] Verificare il ritorno OAuth completo dal provider al callback loopback;
+  l'importazione guidata della pagina nativa è il fallback implementato.
+- [ ] Verificare il create pagina su un account nuovo reale: payload client/fixture
+  disponibile, integrazione reale effettuata sulla pagina privata esistente.
+- [ ] Individuare un inventario upload o idempotenza upstream per riconciliare
+  risposte perse senza possibili file orfani; oggi recupero locale confermato.
 - [ ] Adattare geometria e rendering ad altri modelli/risoluzioni. Il nome è
   indipendente dal dispositivo; la versione attuale resta `800×480`, dither `3`.
 - [ ] Separare compilazione offline e upload nella build, preservando il

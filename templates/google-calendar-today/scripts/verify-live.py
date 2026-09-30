@@ -79,7 +79,7 @@ print("Configured-calendar reconciliation passed", flush=True)
 d = next(
     x
     for x in get("/api/v2/user/device/list")["result"]
-    if x["id"] == settings["device_id"]
+    if str(x["id"]) == str(settings["device_id"])
 )
 save("verified-device.json", d)
 a = get(
@@ -90,7 +90,8 @@ save("verified-assignment.json", a)
 pages = [
     p
     for p in a["result"]["pages"]
-    if p.get("source_page_id") == settings["page_id"] or p["id"] == settings["page_id"]
+    if str(p.get("source_page_id")) == str(settings["page_id"])
+    or str(p["id"]) == str(settings["page_id"])
 ]
 if len(pages) != 1:
     raise ValueError("Expected exactly one deployed private page")

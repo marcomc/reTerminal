@@ -308,7 +308,7 @@ def main():
         d = next(
             d
             for d in api("/api/v2/user/device/list")
-            if d["id"] == settings["device_id"]
+            if str(d["id"]) == str(settings["device_id"])
         )
         api(
             "/api/v2/user/device/deploy",

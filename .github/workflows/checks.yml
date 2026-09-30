@@ -26,10 +26,12 @@ jobs:
         run: python -m unittest discover -s templates/google-calendar-today/tests
       - name: Source semantics
         run: node templates/google-calendar-today/scripts/check.js
+      - name: Configurator browser models
+        run: node templates/google-calendar-today/tests/check_frontend.js
       - name: Python lint
         run: |
-          ruff check templates/google-calendar-today/scripts templates/google-calendar-today/tests
-          ruff format --check templates/google-calendar-today/scripts templates/google-calendar-today/tests
+          ruff check templates/google-calendar-today/configurator templates/google-calendar-today/scripts templates/google-calendar-today/tests
+          ruff format --check templates/google-calendar-today/configurator templates/google-calendar-today/scripts templates/google-calendar-today/tests
       - name: Markdown lint
         run: markdownlint --disable MD013 --config .markdownlint.json '**/*.md'
       - name: Whitespace

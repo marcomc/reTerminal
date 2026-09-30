@@ -10,6 +10,7 @@ adattamento e verifica.
 - [Sorgenti e stato privato](#sorgenti-e-stato-privato)
 - [Funzionalità e limiti](#funzionalità-e-limiti)
 - [Preparazione](#preparazione)
+- [Pannello locale](#pannello-locale)
 - [Personalizzazione](#personalizzazione)
 - [Build e installazione](#build-e-installazione)
 - [Asset e licenza](#asset-e-licenza)
@@ -19,6 +20,7 @@ adattamento e verifica.
 ```text
 templates/google-calendar-today/         sorgenti versionabili
 ├── src/agenda.html                     CSS, logica e fixture dimostrative
+├── configurator/                       pannello web Python locale
 ├── scripts/                            build, configure, persist, verify-live
 ├── examples/                           configurazioni senza dati di account
 ├── assets/                             sfondi runtime, miniatura e inventario
@@ -54,10 +56,10 @@ I vecchi entrypoint in quella directory restano compatibilità locale.
 - Sfondi manuali, mensili o stagionali, festività e dark tra tramonto e alba.
 - Intensità 0–100 e batteria trasparente con colori del tema.
 
-**Il pannello grafico delle preferenze è un mockup, non un’interfaccia
-implementata in SenseCraft.** Le impostazioni sono funzionanti tramite
-`configure.py`. Il collegamento Google avviene nel percorso nativo SenseCraft;
-l’importazione del template non completa OAuth e mappatura automaticamente.
+Il [pannello locale](configurator/README.md) permette setup Google/SenseCraft,
+selezione calendari e tutte le preferenze approvate, anteprima reale, salvataggio
+locale e pubblicazione privata con conferma. Non è integrato nell'interfaccia
+SenseCraft; si avvia soltanto quando serve modificare la configurazione.
 Il runtime è l’HTML caricato su SenseCraft: non richiede uno script periodico,
 un server locale o un servizio ospitato da noi.
 
@@ -80,8 +82,24 @@ Gli esempi non effettuano OAuth o bootstrap. Il binding batteria viene costruito
 nel layout privato: non mettere credenziali nei sorgenti o negli esempi.
 La [guida di ricostruzione](../../docs/sensecraft-agenda-rebuild.md) descrive
 ripristino e nuove risorse; il
-[configuratore pianificato](../../docs/sensecraft-configurator-goal.md)
-è distinto dagli helper CLI attuali.
+[configuratore locale](configurator/README.md)
+completa setup e bootstrap senza modifica manuale dei JSON.
+
+## Pannello locale
+
+```sh
+python3 templates/google-calendar-today/configurator
+```
+
+Il comando apre il browser predefinito e stampa l'indirizzo `127.0.0.1`.
+Da lì si possono scegliere 1–10 calendari, iniziali/colori, lingua, città/fuso,
+indicatori indipendenti, 26 temi, intensità 0–100, modalità chiaro/scuro/solare
+e dimensioni dei titoli. **Genera anteprima**, **Salva locale** e **Salva e
+pubblica** sono azioni distinte. La pubblicazione è soltanto privata.
+Stop con Ctrl-C; il template installato continua autonomamente in SenseCraft.
+
+I seguenti helper restano disponibili per operazioni avanzate; non eseguirli
+contemporaneamente al configuratore sulla stessa installazione.
 
 ## Personalizzazione
 

@@ -10,6 +10,8 @@ it does not contain an MCP server implementation.
 - [MCP implementation brief](docs/mcp-implementation-brief.md)
 - [Agenda rebuild runbook (Italian)](docs/sensecraft-agenda-rebuild.md)
 - [Private publication workflow and diagram](docs/sensecraft-private-publication.md)
+- [Local configurator: launch and usage](templates/google-calendar-today/configurator/README.md)
+- [Configurator QA matrix](docs/sensecraft-configurator-qa.md)
 - [Configurator delivery specification and compact Goal](docs/sensecraft-configurator-goal.md)
 - [Private agenda consolidation verification](docs/sensecraft-consolidation-qa.md)
 - [Template sources (Italian)](templates/README.md)
@@ -25,8 +27,15 @@ Reusable code and runtime artwork are versionable under
 ignored `sensecraft.local.json` at the project root; API key, Google session
 and resource IDs are in ignored `sensecraft.connection.local.json`. `.env` is
 a legacy migration source. Generated layouts, caches and API captures remain in ignored `.private/`.
-The template's settings are supported through an API helper; its graphical
-preferences panel remains a design proposal.
+Launch the local web configurator with:
+
+```sh
+python3 templates/google-calendar-today/configurator
+```
+
+It opens the default browser and supports Google connection, configuration,
+native preview, local save and confirmed private publication. Its server is
+needed only while editing; SenseCraft executes the installed agenda independently.
 
 ## Evidence scope
 
